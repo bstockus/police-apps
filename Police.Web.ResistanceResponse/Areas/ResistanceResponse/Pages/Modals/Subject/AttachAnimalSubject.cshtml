@@ -1,0 +1,23 @@
+﻿@page
+@using Police.Business.ResistanceResponse.Incidents.Subjects.Animals
+@model AttachAnimalSubjectModel
+@{
+    this.UseModalLayout("Attach Animal Subject");
+}
+
+<input type="hidden" asp-for="IncidentId" />
+
+<bs-form-group>
+    <label>Animal Species</label>
+    <select required
+            asp-for="Species"
+            asp-items="Html.GetEnumSelectList<Species>()"></select>
+    <help-block></help-block>
+</bs-form-group>
+
+@section Button {
+    <button bs-context="@ButtonContext.Success"
+            type="submit">
+        Attach Animal Subject
+    </button>
+}

@@ -1,0 +1,36 @@
+﻿Logging:
+  LogLevel:
+    Default: Debug
+    System: Debug
+    Microsoft: Debug
+Serilog:
+  MinimumLevel: Debug
+  Enrich:
+  - FromLogContext
+  - WithMachineName
+  - WithThreadId
+  - WithProcessId
+  WriteTo:
+  - Name: LiterateConsole
+  - Name: Debug
+
+ConnectionStrings:
+  #PoliceDb: Server=.;Database=Police;User Id=test;Password=Passw0rd;MultipleActiveResultSets=True;
+
+Email:
+  MailServer: mail2
+  FromAddress: responsetoresistance@cityoflacrosse.org
+  FromDisplayName: Response to Resistance Notifications
+  OverrideAddress: stockusb@cityoflacrosse.org
+
+AzureAd:
+  Instance: https://login.microsoftonline.com/
+  TenantId: b9bc47de-972a-4482-ad22-b9c21b74e467
+  ClientId: <InsertClientIdHere>
+  CallbackPath: /signin-oidc
+  SignedOutCallbackPath: /signout-oidc
+  ClientSecret: <InsertClientSecretHere>
+
+GraphBeta:
+  BaseUrl: https://graph.microsoft.com/beta
+  Scopes: User.Read

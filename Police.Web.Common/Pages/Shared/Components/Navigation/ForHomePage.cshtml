@@ -1,0 +1,30 @@
+﻿@model IEnumerable<Police.Web.Common.Navigation.NavigationSection>
+
+@foreach (var navigationSection in Model) {
+
+    <div class="col-xs-4">
+        <div class="box box-solid box-success">
+            <div class="box-header with-border">
+                <h3 class="box-title">@navigationSection.Title</h3>
+            </div>
+            <!-- /.box-header -->
+            <div class="box-body">
+
+                @foreach (var navigationItem in navigationSection.NavigationItems) {
+
+                    <a type="button"
+                           class="btn btn-lg btn-info btn-block"
+                           asp-area="@navigationItem.Area"
+                           asp-page="@navigationItem.Page">
+                            @navigationItem.Title
+                        </a>
+
+                }
+
+            </div>
+            <!-- /.box-body -->
+        </div>
+        <!-- /.box -->
+    </div>
+
+}

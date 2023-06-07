@@ -1,0 +1,33 @@
+﻿@page
+@using Police.Business.ResistanceResponse.Incidents.Subjects.Animals
+@using Police.Business.ResistanceResponse.Incidents.Subjects.People
+@model RemoveSubjectModel
+@{
+    this.UseModalLayout("Remove Subject");
+}
+
+<input type="hidden" asp-for="IncidentId" />
+<input type="hidden" asp-for="SubjectId" />
+
+<p class="lead">Are you sure you want to remove the following subject from this incident?</p>
+
+<bs-form-group>
+    <label>Subject</label>
+    <p>
+        @if (Model.SubjectInfo is SubjectAnimalInfo animalSubject) {
+            @:Animal:
+            <span class="label label-default">@animalSubject.Species.GetDescription()</span>
+        } else if (Model.SubjectInfo is SubjectPersonInfo personSubject) {
+            @:Person:
+            @:<span class="label label-default">@personSubject.Race.GetDescription() @personSubject.Gender.GetDescription()</span>
+            @:<strong>@personSubject.FullName</strong> (Age: @personSubject.Age)
+        }
+    </p>
+</bs-form-group>
+
+@section Button {
+    <button bs-context="@ButtonContext.Danger"
+            type="submit">
+        Remove Subject
+    </button>
+}

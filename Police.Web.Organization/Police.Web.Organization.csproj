@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <AddRazorSupportForMvc>true</AddRazorSupportForMvc>
+    <LangVersion>latest</LangVersion>
+    <CopyRefAssembliesToPublishDirectory>true</CopyRefAssembliesToPublishDirectory>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Lax.Business.Authorization.HttpContext" Version="7.1.1" />
+    <PackageReference Include="AutoFac.Extensions.DependencyInjection" Version="7.1.0" />
+    <PackageReference Include="Lax.Mvc.AdminLte" Version="7.1.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Police.Business.Abstractions\Police.Business.Abstractions.csproj" />
+    <ProjectReference Include="..\Police.Business.Common\Police.Business.Common.csproj" />
+    <ProjectReference Include="..\Police.Business.Identity\Police.Business.Identity.csproj" />
+    <ProjectReference Include="..\Police.Business.Organization\Police.Business.Organization.csproj" />
+    <ProjectReference Include="..\Police.Business\Police.Business.csproj" />
+    <ProjectReference Include="..\Police.Security\Police.Security.csproj" />
+    <ProjectReference Include="..\Police.Web.Common\Police.Web.Common.csproj" />
+  </ItemGroup>
+
+</Project>

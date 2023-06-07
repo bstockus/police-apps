@@ -1,0 +1,77 @@
+﻿{
+  "iisSettings": {
+    "windowsAuthentication": true, 
+    "anonymousAuthentication": false, 
+    "iisExpress": {
+      "applicationUrl": "http://localhost:55312",
+      "sslPort": 44369
+    }
+  },
+  "profiles": {
+    "IIS Express - Development": {
+      "commandName": "IISExpress",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    },
+    "IIS Express - Production": {
+      "commandName": "IISExpress",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Production"
+      }
+    },
+    "ResistanceResponse.Web - Production": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "applicationUrl": "https://localhost:5001;http://localhost:5000",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Production"
+      }
+    },
+    "ResistanceResponse.Web - Staging": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "applicationUrl": "https://localhost:5001;http://localhost:5000",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Staging"
+      }
+    },
+    "ResistanceResponse.Web - M365 SSO": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "applicationUrl": "https://localhost:5001;http://localhost:5000",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    },
+    "ResistanceResponse.Web - nedegaardt": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "applicationUrl": "https://localhost:5001;http://localhost:5000",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_ImpersonateUser": "S-1-5-21-1792825746-761096916-1846952604-1246"
+      }
+    },
+    "ResistanceResponse.Web - abrahamr": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "applicationUrl": "https://localhost:5001;http://localhost:5000",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_ImpersonateUser": "S-1-5-21-1792825746-761096916-1846952604-1248"
+      }
+    },
+    "ResistanceResponse.Web - westpfahl": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "applicationUrl": "https://localhost:5001;http://localhost:5000",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_ImpersonateUser": "S-1-5-21-1792825746-761096916-1846952604-14296"
+      }
+    }
+  }
+}

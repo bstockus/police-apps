@@ -1,0 +1,136 @@
+﻿@using Police.Business.Common
+@using Police.Business.ResistanceResponse.Approvals
+@using Police.Business.ResistanceResponse.Incidents.IncidentOfficers
+@using Police.Security.User
+@using Police.Web.ResistanceResponse.Helpers
+@using Police.Web.ResistanceResponse.ViewModels
+@model OfficersPartialViewModel
+
+@{
+    var incidentId = Model.IncidentId;
+    var officerId = Model.OfficerId;
+    var userInformation = ViewData["UserInformation"] as UserInformation;
+}
+
+@if (Model.IncidentOfficerInfo.Any()) {
+    <lte-box>
+
+        <lte-box-header>
+            <lte-box-title>Officers Involved in Incident</lte-box-title>
+
+        </lte-box-header>
+
+        <lte-box-body>
+
+            @foreach (var officer in Model.IncidentOfficerInfo) {
+
+                <p>
+
+                    <span class="pull-right">
+                        @if (officer.IsUserAllowedToMakeChanges(userInformation)) {
+                            <a bs-button
+                               asp-page="@PageConstants.Modals.Officer.UpdateOfficerInjury"
+                               asp-route-incidentId="@incidentId"
+                               asp-route-officerId="@officer.OfficerId"
+                               bs-context="@ButtonContext.Warning"
+                               bs-size="@Size.ExtraSmall"
+                               bs-remote>Edit</a>
+                        }
+                    </span>
+                    
+                    @Html.Raw(officer.ToApprovalStatusDisplayLabel())
+
+                    <strong>@officer.OfficerLastName, @officer.OfficerFirstName</strong> (@officer.OfficerBadgeNumber)
+
+                    @if (officer.WasOfficerInjured.Equals(YesNo.Yes)) {
+
+                        <span class="label label-warning" style="margin-right: 5px;">Was Injured</span>
+
+                        @if (officer.DidOfficerRequireMedicalAttention.Equals(YesNo.Yes)) {
+                            <span class="label label-danger">Required Medical Attention</span>
+
+                            
+                        }
+
+                        <em>@officer.DidOfficerRequireMedicalAttentionDescription</em>
+
+                    }
+
+                    @if (officer.IsUserAllowedToApproveOrRejectAsSupervisorOrTraining(userInformation)) {
+
+
+                        <div class="form-inline" style="margin-right: 10px; margin-left: 10px; margin-bottom: 10px;">
+
+                            <bs-form-group>
+                                <label>Approve or Reject the Incident Officer Submission</label>
+                                <select name="ApproveOrReject_IncidentOfficer_@officer.OfficerId.ToString()_Choice"
+                                        id="ApproveOrReject_IncidentOfficer_@officer.OfficerId.ToString()_Choice"
+                                        asp-items="@officer.ToSelectListItems(userInformation)"
+                                        data-none-toggle="#ApproveOrReject_IncidentOfficer_@officer.OfficerId.ToString()_Remarks"></select>
+                            </bs-form-group>
+
+                            <bs-form-group style="width: 100%;">
+                                <label>Remarks</label>
+                                <textarea maxlength="1000"
+                                          name="ApproveOrReject_IncidentOfficer_@officer.OfficerId.ToString()_Remarks"
+                                          id="ApproveOrReject_IncidentOfficer_@officer.OfficerId.ToString()_Remarks"
+                                          style="width: 100%; height: inherit;"></textarea>
+                            </bs-form-group>
+
+                        </div>
+
+
+                    }
+                    
+                    <br/>
+                    
+                    @Html.Raw(officer.ToApprovalStatusInformationLine())
+
+                </p>
+
+            }
+
+        </lte-box-body>
+
+        @if (userInformation.CanUserSubmitForOfficersOtherThanThemselves()) {
+            <lte-box-footer>
+                <a bs-button
+                   asp-page="@PageConstants.Modals.Officer.AttachOfficer"
+                   asp-route-incidentId="@incidentId"
+                   bs-context="@ButtonContext.Success"
+                   bs-block-style
+                   bs-remote>Attach Another Officer</a>
+            </lte-box-footer>
+        }
+
+    </lte-box>
+} else {
+    <lte-box>
+
+        <lte-box-header>
+            <lte-box-title>Officers Involved in Incident</lte-box-title>
+
+        </lte-box-header>
+
+        <lte-box-body>
+
+            <h5 class="text-muted"
+                style="text-align: center; padding-top: 15px;">
+                No Officers are currently attached to this report.
+            </h5>
+
+        </lte-box-body>
+
+        @if (userInformation.CanUserSubmitForOfficersOtherThanThemselves()) {
+            <lte-box-footer>
+                <a bs-button
+                   asp-page="@PageConstants.Modals.Officer.AttachOfficer"
+                   asp-route-incidentId="@incidentId"
+                   bs-context="@ButtonContext.Success"
+                   bs-block-style
+                   bs-remote>Attach Another Officer</a>
+            </lte-box-footer>
+        }
+
+    </lte-box>
+}

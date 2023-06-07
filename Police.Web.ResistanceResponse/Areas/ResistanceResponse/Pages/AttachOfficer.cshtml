@@ -1,0 +1,79 @@
+﻿@page
+@using Police.Business.Common
+@model AttachOfficerModel
+@{
+    this.UseLayout("Enter Officer Information");
+}
+
+@section Header {
+    Enter Officer Information
+}
+
+
+@section Breadcrumbs {
+}
+
+
+@if (Model.OfficerInfos == null) {
+    <h2>You are not currently attached as an officer involved to Case Number @Model.Incident.IncidentCaseNumber</h2>
+    <h4>Please fill out the form below to attach yourself as an officer involved.</h4>
+} else {
+    <h2>No officers are currently attached to Case Number @Model.Incident.IncidentCaseNumber</h2>
+    <h4>Please fill out the form below to attach an officer.</h4>
+}
+
+<form method="post" autocomplete="off">
+
+    <input type="hidden" asp-for="IncidentId" />
+
+
+    @if (Model.OfficerInfos == null) {
+
+        <input type="hidden" asp-for="OfficerId" />
+
+        <bs-form-group>
+            <label>Officer</label>
+            <p>@Model.Officer.LastName, @Model.Officer.FirstName (@Model.Officer.BadgeNumber)</p>
+        </bs-form-group>
+    } else {
+        <bs-form-group>
+            <label>Officer</label>
+            <select required
+                    asp-for="OfficerId"
+                    asp-items="@Model.OfficerInfos.OrderBy(_ => _.LastName).ThenBy(_ => _.FirstName).Select(_ => new SelectListItem($"{_.LastName}, {_.FirstName} ({_.BadgeNumber})", _.Id.ToString()))"></select>
+            <help-block></help-block>
+        </bs-form-group>
+    }
+
+
+
+    <bs-form-group>
+        <label>Was Officer Injured?</label>
+        <select required
+                asp-for="WasOfficerInjured"
+                asp-items="Html.GetEnumSelectList<YesNo>()"
+                data-yes-toggle="#DidOfficerRequireMedicalAttention"></select>
+        <help-block></help-block>
+    </bs-form-group>
+
+    <bs-form-group>
+        <label>Did Officer Require Medical Attention</label>
+        <select required
+                asp-for="DidOfficerRequireMedicalAttention"
+                asp-items="Html.GetEnumSelectList<YesNo>()"
+                data-yes-toggle="#DidOfficerRequireMedicalAttentionDescription"></select>
+        <help-block></help-block>
+    </bs-form-group>
+
+    <bs-form-group>
+        <label>Describe</label>
+        <textarea maxlength="1000"
+                  asp-for="DidOfficerRequireMedicalAttentionDescription"></textarea>
+        <help-block></help-block>
+    </bs-form-group>
+
+    <div>
+        <button type="submit" bs-context="@ButtonContext.Success">Attach</button>
+    </div>
+
+</form>

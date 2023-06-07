@@ -1,0 +1,112 @@
+﻿@page
+@using System.Globalization
+@using Police.Business.ResistanceResponse.Incidents
+@model ListModel
+@{
+    this.UseLayout("All Incidents");
+}
+
+@section Header {
+    All Incidents
+}
+
+@section Breadcrumbs {
+    <li class="active">List</li>
+}
+
+@if (!string.IsNullOrWhiteSpace(Model.Message)) {
+    <alert context="Info">@Model.Message</alert>
+}
+
+@if (Model.IncidentListInfos.Any()) {
+
+    <lte-box>
+        
+        <lte-box-header>
+            <lte-box-title>All Incidents</lte-box-title>
+            <lte-box-tools>
+                <datatable-search table-id="incidents"></datatable-search>
+            </lte-box-tools>
+        </lte-box-header>
+        
+        <lte-box-body padding="false">
+            
+                <div class="btn-group" style="margin-left: 10px; margin-right: 10px;">
+                    @foreach (var yearGroup in Model.IncidentYearsAndCounts.OrderBy(_ => _.Year)) {
+                        <a bs-button
+                           bs-context="@(yearGroup.Year.Equals(Model.YearToDisplay) ? ButtonContext.Primary : ButtonContext.Default)"
+                           bs-size="@Size.Small"
+                           asp-page="@PageConstants.List"
+                           asp-route-year="@yearGroup.Year"
+                           role="button">
+                            @yearGroup.Year
+                            <span class="badge">@yearGroup.Count</span>
+                        </a>
+                    }
+                </div>
+
+            <datatable table-id="incidents" table-type="Normal">
+
+                <datatable-headers>
+
+                    <datatable-header>Case Number</datatable-header>
+                    <datatable-header>Date &amp; Time</datatable-header>
+                    <datatable-header>Has Unsubmitted Changes?</datatable-header>
+                    <datatable-header>Has Items Requiring Approval?</datatable-header>
+                    <datatable-header>Has Rejected Items?</datatable-header>
+                    <datatable-header orderable="false"></datatable-header>
+
+                </datatable-headers>
+
+                <datatable-body>
+
+                    @foreach (var incident in Model.IncidentListInfos) {
+
+                        <datatable-row>
+
+                            <datatable-cell>
+                                @incident.IncidentCaseNumber
+                            </datatable-cell>
+
+                            <datatable-cell order-value="@incident.IncidentDateAndTime.ToDateTimeUnspecified().Ticks.ToString()">
+                                @incident.IncidentDateAndTime.ToString("g", CultureInfo.CurrentCulture)
+                            </datatable-cell>
+
+                            <datatable-cell>
+                                <lax-cbo value="@incident.CanUserSubmitIncidentOrAnyChildrenAsOfficer(Model.UserInformation)"></lax-cbo>
+                            </datatable-cell>
+
+                            <datatable-cell>
+                                <lax-cbo value="@incident.CanUserApproveOrRejectIncidentOrAnyChildrenAsSupervisorOrTraining(Model.UserInformation)"></lax-cbo>
+                            </datatable-cell>
+
+                            <datatable-cell>
+                                <lax-cbo value="@incident.CanUserReSubmitIncidentOrAnyChildrenAsOfficer(Model.UserInformation)"></lax-cbo>
+                            </datatable-cell>
+
+                            <datatable-cell>
+                                <span class="pull-right">
+                                    <a bs-button
+                                       asp-page="@PageConstants.Details"
+                                       asp-route-incidentId="@incident.Id"
+                                       bs-context="@ButtonContext.Default"
+                                       bs-size="@Size.ExtraSmall"
+                                       role="button">
+                                        View/Edit
+                                    </a>
+                                </span>
+                            </datatable-cell>
+
+                        </datatable-row>
+
+                    }
+
+                </datatable-body>
+
+            </datatable>
+
+        </lte-box-body>
+
+    </lte-box>
+
+}

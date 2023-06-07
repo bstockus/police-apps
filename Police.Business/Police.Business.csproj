@@ -1,0 +1,36 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Autofac" Version="6.1.0" />
+    <PackageReference Include="Lax.Business.Authorization.Abstractions" Version="7.1.1" />
+
+    <PackageReference Include="Lax.Business.Bus.Authorization" Version="7.1.1" />
+    <PackageReference Include="Lax.Business.Bus.Logging" Version="7.1.1" />
+    <PackageReference Include="Lax.Business.Bus.UnitOfWork" Version="7.1.1" />
+    <PackageReference Include="Lax.Business.Bus.Validation" Version="7.1.1" />
+
+    <PackageReference Include="Lax.AutoFac.AutoMapper" Version="7.1.1" />
+    <PackageReference Include="Lax.AutoFac.FluentValidation" Version="7.1.1" />
+    <PackageReference Include="Lax.AutoFac.MediatR" Version="7.1.1" />
+    <PackageReference Include="Lax.AutoFac.NodaTime" Version="7.1.1" />
+    <PackageReference Include="Lax.Helpers.Common" Version="7.1.1" />
+    <PackageReference Include="Lax.Serialization.Json" Version="7.1.1" />
+
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Police.Business.Abstractions\Police.Business.Abstractions.csproj" />
+    <ProjectReference Include="..\Police.Business.Common\Police.Business.Common.csproj" />
+    <ProjectReference Include="..\Police.Business.Identity\Police.Business.Identity.csproj" />
+    <ProjectReference Include="..\Police.Business.Organization\Police.Business.Organization.csproj" />
+    <ProjectReference Include="..\Police.Business.ResistanceResponse\Police.Business.ResistanceResponse.csproj" />
+    <ProjectReference Include="..\Police.Data.ActiveDirectory\Police.Data.ActiveDirectory.csproj" />
+    <ProjectReference Include="..\Police.Data\Police.Data.csproj" />
+    <ProjectReference Include="..\Police.Security\Police.Security.csproj" />
+  </ItemGroup>
+
+</Project>

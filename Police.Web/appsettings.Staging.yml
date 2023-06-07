@@ -1,0 +1,15 @@
+Logging:
+  LogLevel:
+    Default: Debug
+    System: Debug
+    Microsoft: Debug
+Serilog:
+  MinimumLevel: Debug
+  Enrich:
+  - FromLogContext
+  - WithMachineName
+  - WithThreadId
+  - WithProcessId
+  WriteTo:
+  - Name: LiterateConsole
+  - Name: Debug

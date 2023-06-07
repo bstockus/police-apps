@@ -1,0 +1,143 @@
+﻿@page
+@model IndexModel
+
+@{
+    this.UseLayout("All Officers");
+
+    var filterType = "All";
+    if (Model.ShowingOnlyCurrentlyEmployedOfficers && !Model.ShowingOnlySwornOfficers) {
+        filterType = "Currently Employed";
+    } else if (!Model.ShowingOnlyCurrentlyEmployedOfficers && Model.ShowingOnlySwornOfficers) {
+        filterType = "Sworn";
+    } else if (Model.ShowingOnlyCurrentlyEmployedOfficers && Model.ShowingOnlySwornOfficers) {
+        filterType = "Currently Employed and Sworn";
+    }
+}
+
+@section Header {
+    Officers
+}
+
+@section Breadcrumbs {
+    <li class="active">Officers</li>
+}
+
+@if (!string.IsNullOrWhiteSpace(Model.Message)) {
+    <alert context="Info">@Model.Message</alert>
+}
+
+@if (Model.OfficerInfos.Any()) {
+
+
+    <lte-box>
+
+        <lte-box-header>
+            <lte-box-title>
+                @filterType Officers
+            </lte-box-title>
+            <lte-box-tools>
+                <datatable-search table-id="officers"></datatable-search>
+            </lte-box-tools>
+        </lte-box-header>
+
+        <lte-box-body padding="false">
+            
+            <div class="btn-group" style="margin-left: 10px; margin-right: 10px;">
+                <a bs-button
+                   bs-context="@(!Model.ShowingOnlyCurrentlyEmployedOfficers && !Model.ShowingOnlySwornOfficers ? ButtonContext.Primary : ButtonContext.Default)"
+                   bs-size="@Size.Small"
+                   asp-page="@PageConstants.Index"
+                   role="button">
+                    All
+                    <span class="badge">@Model.OfficerCounts.AllOfficersCount</span>
+                </a>
+                <a bs-button
+                   bs-context="@(Model.ShowingOnlyCurrentlyEmployedOfficers && !Model.ShowingOnlySwornOfficers ? ButtonContext.Primary : ButtonContext.Default)"
+                   bs-size="@Size.Small"
+                   asp-page="@PageConstants.Index"
+                   asp-route-onlyCurrentlyEmployed="true"
+                   role="button">
+                    Currently Employed only
+                    <span class="badge">@Model.OfficerCounts.CurrentlyEmployedOnlyCount</span>
+                </a>
+                <a bs-button
+                   bs-context="@(!Model.ShowingOnlyCurrentlyEmployedOfficers && Model.ShowingOnlySwornOfficers ? ButtonContext.Primary : ButtonContext.Default)"
+                   bs-size="@Size.Small"
+                   asp-page="@PageConstants.Index"
+                   asp-route-onlySworn="true"
+                   role="button">
+                    Sworn only
+                    <span class="badge">@Model.OfficerCounts.SwornOnlyCount</span>
+                </a>
+                <a bs-button
+                   bs-context="@(Model.ShowingOnlyCurrentlyEmployedOfficers && Model.ShowingOnlySwornOfficers ? ButtonContext.Primary : ButtonContext.Default)"
+                   bs-size="@Size.Small"
+                   asp-page="@PageConstants.Index"
+                   asp-route-onlySworn="true"
+                   asp-route-onlyCurrentlyEmployed="true"
+                   role="button">
+                    Currently Employed and Sworn
+                    <span class="badge">@Model.OfficerCounts.CurrentlyEmployedAndSwornCount</span>
+                </a>
+            </div>
+
+            <datatable table-id="officers" table-type="Normal">
+
+                <datatable-headers>
+
+                    <datatable-header>Name</datatable-header>
+                    <datatable-header>Email Address</datatable-header>
+                    <datatable-header>Badge Number</datatable-header>
+                    <datatable-header>Employee Number</datatable-header>
+                    <datatable-header>Is Sworn?</datatable-header>
+                    <datatable-header>Is Currently Employed?</datatable-header>
+                    <datatable-header orderable="false"></datatable-header>
+
+                </datatable-headers>
+
+                <datatable-body>
+
+                    @foreach (var officerInfo in Model.OfficerInfos) {
+
+                        <datatable-row>
+
+                            <datatable-cell>
+                                <strong>@officerInfo.LastName</strong>, @officerInfo.FirstName
+                            </datatable-cell>
+
+                            <datatable-cell>
+                                @officerInfo.UserEmailAddress
+                            </datatable-cell>
+
+                            <datatable-cell>
+                                @officerInfo.BadgeNumber
+                            </datatable-cell>
+
+                            <datatable-cell>
+                                @officerInfo.EmployeeNumber
+                            </datatable-cell>
+
+                            <datatable-cell>
+                                <lax-cbo value="@(officerInfo.IsSwornOfficer ?? false)"></lax-cbo>
+                            </datatable-cell>
+
+                            <datatable-cell>
+                                <lax-cbo value="@(officerInfo.IsCurrentlyEmployed ?? false)"></lax-cbo>
+                            </datatable-cell>
+
+                            <datatable-cell>
+                            </datatable-cell>
+
+                        </datatable-row>
+
+                    }
+
+                </datatable-body>
+
+            </datatable>
+
+        </lte-box-body>
+
+    </lte-box>
+
+}

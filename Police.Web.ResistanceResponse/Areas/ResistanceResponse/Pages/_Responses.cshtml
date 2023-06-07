@@ -1,0 +1,258 @@
+﻿@using Police.Business.Common
+@using Police.Business.ResistanceResponse.Incidents.Reports.Responses
+@model IEnumerable<Police.Business.ResistanceResponse.Incidents.Reports.ReportInfo.ReportResponseInfo>
+
+@{
+    var incidentId = ViewData["IncidentId"];
+    var officerId = ViewData["OfficerId"];
+    var subjectId = ViewData["SubjectId"];
+}
+
+<lte-box-body padding="false">
+
+    <hr style="margin-top: 0; margin-bottom: 0;" />
+
+    <p class="lead" style="padding-left: 10px; padding-right: 10px; margin: 0;">
+        Responses Used:
+    </p>
+
+    @foreach (var response in Model) {
+
+        <div class="box box-default box-solid" style="margin: 10px; width: 1120px;">
+            <div class="box-header with-border">
+                <h3 class="box-title">@response.ResponseType.GetDescription()</h3>
+            </div>
+            <div class="box-body">
+
+                <dl>
+                    <dt>Was Effective?</dt>
+                    <dd>@response.WasEffective.GetDescription()</dd>
+                </dl>
+
+                @if (response.ResponseType.IsFireArmDeadlyForceAddendumRequired()) {
+                    <h4>Firearm Deadly Force Addendum</h4>
+
+                    <div class="row">
+
+                        <div class="col-xs-3">
+
+                            <dl>
+                                <dt>Make</dt>
+                                <dd>@response.FireArmDeadlyForceAddendum.FireArmMake</dd>
+                            </dl>
+
+                        </div>
+
+                        <div class="col-xs-3">
+
+                            <dl>
+                                <dt>Model</dt>
+                                <dd>@response.FireArmDeadlyForceAddendum.FireArmModel</dd>
+                            </dl>
+
+                        </div>
+
+
+                        <div class="col-xs-3">
+
+                            <dl>
+                                <dt>Serial Number</dt>
+                                <dd>@response.FireArmDeadlyForceAddendum.FireArmSerialNumber</dd>
+                            </dl>
+
+                        </div>
+
+                        <div class="col-xs-3">
+
+                            <dl>
+                                <dt>Ammo Type</dt>
+                                <dd>@response.FireArmDeadlyForceAddendum.FireArmAmmoType</dd>
+                            </dl>
+
+                        </div>
+
+                    </div>
+                }
+
+                @if (response.ResponseType.IsOtherDeadlyForceAddendumRequired()) {
+
+                    <h4>Other Deadly Force Addendum</h4>
+
+                    <p>@response.OtherDeadlyForceAddendum.OtherDeadlyForceDescription</p>
+
+                }
+
+                @if (response.ResponseType.IsPitUsageAddendumRequired()) {
+
+                    <h4>PIT Usage Addendum</h4>
+
+                    <dl>
+
+                        <dt>Approximate Speed at time of P.I.T.</dt>
+                        <dd>@response.PitUsageAddendum.PitUsageVehicleSpeed.ToString("F0") mph</dd>
+
+                        <dt>Was the Suspect Vehicle Immobilized?</dt>
+                        <dd>@response.PitUsageAddendum.WasSuspectVehicleImmobilized.GetDescription()</dd>
+
+                        <dt>Was there secondary impact by suspect vehicle after PIT?</dt>
+                        <dd>@response.PitUsageAddendum.WasSecondaryImpactBySuspectVehicleAfterPit.GetDescription()</dd>
+
+                        @if (response.PitUsageAddendum.WasSecondaryImpactBySuspectVehicleAfterPit.Equals(YesNo.Yes)) {
+                            <dt>Describe what was impacted by suspect vehicle after PIT</dt>
+                            <dd>@response.PitUsageAddendum.SecondaryImpactBySuspectVehicleAfterPitPartsImpacted</dd>
+                        }
+
+
+                    </dl>
+
+                }
+
+                @if (response.ResponseType.IsTaserAddendumRequired()) {
+
+                    <h4>Taser Usage Addendum</h4>
+
+                    <dl>
+
+                        <dt>Taser Methods Used</dt>
+                        <dd>
+                            @if (response.TaserUsageAddendum.WasLaserDisplayUsed) {
+                                <span class="label label-info">Laser Display</span>
+                            }
+                            @if (response.TaserUsageAddendum.WasArcDisplayUsed) {
+                                <span class="label label-info">Arc Display</span>
+                            }
+                            @if (response.TaserUsageAddendum.WasDriveStunUsed) {
+                                <span class="label label-info">Drive Stun</span>
+                            }
+                            @if (response.TaserUsageAddendum.WasProbeDeployUsed) {
+                                <span class="label label-info">Probe Deploy</span>
+                            }
+                        </dd>
+
+                        @if (response.TaserUsageAddendum.WasDriveStunUsed || response.TaserUsageAddendum.WasProbeDeployUsed) {
+
+                            <dt>Was there probe contact?</dt>
+                            <dd>@response.TaserUsageAddendum.DidProbesContact.GetDescription()</dd>
+
+                            <dt>How many total cycles applied?</dt>
+                            <dd>@response.TaserUsageAddendum.CyclesApplied</dd>
+
+                        }
+
+                        @if (response.TaserUsageAddendum.WasProbeDeployUsed) {
+
+                            <dt>What was the approximate distance at the time the dart was launched between the officer & Subject (ft)?</dt>
+                            <dd>@response.TaserUsageAddendum.DistanceWhenLaunched.ToString()</dd>
+
+                            <dt>Distance Between Probes (in)</dt>
+                            <dd>@response.TaserUsageAddendum.DistanceBetweenProbes.ToString()</dd>
+
+                        }
+
+                        @if (response.TaserUsageAddendum.WasDriveStunUsed || response.TaserUsageAddendum.WasProbeDeployUsed) {
+
+                            <dt>Was there a need for additional shots?</dt>
+                            <dd>@response.TaserUsageAddendum.AdditionalShotsRequired.GetDescription()</dd>
+
+                            <dt>Was the subject wearing layered/heavy clothes?</dt>
+                            <dd>@response.TaserUsageAddendum.SubjectWearingHeavyClothing.GetDescription()</dd>
+
+                        }
+
+                        @if (response.TaserUsageAddendum.WasProbeDeployUsed) {
+
+                            <dt>If the probes were deployed, did they penetrate the skin?</dt>
+                            <dd>@response.TaserUsageAddendum.DidProbesPenetrateSkin.GetDescription()</dd>
+
+                            if (response.TaserUsageAddendum.DidProbesPenetrateSkin.Equals(YesNo.Yes)) {
+
+                                <dt>Were the probes removed at the scene?</dt>
+                                <dd>@response.TaserUsageAddendum.WereProbesRemovedAtScene.GetDescription()</dd>
+
+                                <dt>Who removed the probes?</dt>
+                                <dd>@response.TaserUsageAddendum.WhoRemovedProbes</dd>
+
+                            }
+
+                        }
+
+                        @if (response.TaserUsageAddendum.WasDriveStunUsed || response.TaserUsageAddendum.WasProbeDeployUsed) {
+
+                            <dt>Any secondary injuries from Taser use?</dt>
+                            <dd>@response.TaserUsageAddendum.AnySecondaryInjuriesFromTaserUsage.GetDescription()</dd>
+
+                            if (response.TaserUsageAddendum.AnySecondaryInjuriesFromTaserUsage.Equals(YesNo.Yes)) {
+
+                                <dt>Was medical attention required needed?</dt>
+                                <dd>@response.TaserUsageAddendum.WasMedicalAttentionRequiredForSecondaryInjuries</dd>
+
+                            }
+
+                            <dt>How many photos were taken?</dt>
+                            <dd>@response.TaserUsageAddendum.NumberOfPhotosTaken.ToString()</dd>
+
+                            if (!string.IsNullOrWhiteSpace(response.TaserUsageAddendum.CameraUsedToTakePhotos)) {
+                                <dt>Which camera?</dt>
+                                <dd>@response.TaserUsageAddendum.CameraUsedToTakePhotos</dd>
+                            }
+
+                        }
+
+                        <dt>Taser Serial Number</dt>
+                        <dd>@response.TaserUsageAddendum.TaserSerialNumber</dd>
+
+                        @if (response.TaserUsageAddendum.WasProbeDeployUsed && !string.IsNullOrWhiteSpace(response.TaserUsageAddendum.TaserCartridgeNumberUsed)) {
+                            <dt>Taser Cartridge Number if used</dt>
+                            <dd>@response.TaserUsageAddendum.TaserCartridgeNumberUsed</dd>
+                        }
+
+                    </dl>
+                    
+                    if (response.TaserUsageAddendum.WasDriveStunUsed || response.TaserUsageAddendum.WasProbeDeployUsed) {
+                            
+                            <svg 
+                                xmlns="http://www.w3.org/2000/svg" 
+                                version="1.1" 
+                                xmlns:xlink="http://www.w3.org/1999/xlink" 
+                                width="500px" 
+                                height="405px">
+                    
+                                <image 
+                                    href="/imgs/person-image.jpg" 
+                                    x="0" 
+                                    y="0" 
+                                    height="405px" 
+                                    width="500px" 
+                                    class="person-image"
+                                    v-on:click="add" /> 
+                    
+                                @foreach (var bodyUsageLocation in response.TaserUsageAddendum.BodyUsageLocations) {
+
+                                    var imageMap = new Dictionary<TaserUsageAddendum.BodyUsageLocation.UsageType, string>() {
+                                        {TaserUsageAddendum.BodyUsageLocation.UsageType.DriveStun, "/imgs/drive-stun.png"},
+                                        {TaserUsageAddendum.BodyUsageLocation.UsageType.ProbeDeploy, "/imgs/probe-deploy.png"}
+                                    };
+                                    
+                                    <image
+                                        href="@(imageMap[bodyUsageLocation.BodyUsageType])" 
+                                        x="@bodyUsageLocation.X" 
+                                        y="@bodyUsageLocation.Y" 
+                                        height="12px" 
+                                        width="12px" />
+                                    
+                                }
+                                        
+                            </svg>
+
+                        }
+
+                }
+
+
+            </div>
+        </div>
+
+
+    }
+
+</lte-box-body>

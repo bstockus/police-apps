@@ -1,0 +1,37 @@
+﻿@page
+@model IndexModel
+@{
+    this.UseLayout("Home");
+}
+
+@section Header {
+    Response to Resistance
+}
+
+
+@section Breadcrumbs {
+    <li class="active">
+        <i class="fa fa-home"></i>
+    </li>
+}
+
+<form method="post">
+
+    <div class="form-group">
+        <label for="caseNumber">Case Number:</label>
+        <input type="text"
+               class="form-control"
+               id="caseNumber"
+               asp-for="CaseNumber"
+               placeholder="Enter Case Number..."
+               autocomplete="off"
+               required
+               maxlength="10" />
+        <p class="help-block">Should be in the format 19-18773 <strong>(No leading "10-")</strong>.  No more than 10 characters allowed in this field.</p>
+    </div>
+
+    <div>
+        <button type="submit" bs-context="@ButtonContext.Primary">Go</button>
+    </div>
+
+</form>

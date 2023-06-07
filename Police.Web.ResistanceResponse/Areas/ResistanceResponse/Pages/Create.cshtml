@@ -1,0 +1,53 @@
+﻿@page
+@model CreateModel
+@{
+    this.UseLayout("Enter Incident Information");
+}
+
+@section Header {
+    Enter Incident Information
+}
+
+
+@section Breadcrumbs {
+}
+
+<h2>Case Number @Model.CaseNumber does not currently have any reports associated with it</h2>
+<h4>Please enter the Incident Date and Time below in order to create a new report:</h4>
+
+<form method="post" autocomplete="off">
+
+    <input type="hidden" asp-for="CaseNumber" />
+
+    <div class="form-group">
+        <label for="incidentDate">Incident Date:</label>
+
+        <input type="text"
+               class="form-control date-control"
+               id="incidentDate"
+               asp-for="IncidentDate"
+               value="@Model.IncidentDate.ToShortDateString()" />
+
+    </div>
+
+    <div class="form-group">
+        <label for="incidentTime">Incident Time:</label>
+        <div class="input-group bootstrap-timepicker timepicker">
+
+            <input type="text"
+                   class="form-control time-control"
+                   id="incidentTime"
+                   asp-for="IncidentTime" />
+
+            <span class="input-group-addon">
+                <i class="glyphicon glyphicon-time"></i>
+            </span>
+        </div>
+
+    </div>
+
+    <div>
+        <button type="submit" bs-context="@ButtonContext.Success">Create</button>
+    </div>
+
+</form>

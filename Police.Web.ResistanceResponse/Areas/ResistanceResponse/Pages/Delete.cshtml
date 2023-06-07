@@ -1,0 +1,41 @@
+﻿@page
+@using Lax.Helpers.Common
+@model DeleteModel
+
+@{
+    this.UseLayout($"Delete Case Number {Model.Incident.IncidentCaseNumber}");
+}
+
+@section Header {
+    Delete Response to Resistance Report for Case Number <strong>@Model.Incident.IncidentCaseNumber</strong>
+}
+
+@section Breadcrumbs {
+    <li>@Model.Incident.IncidentCaseNumber</li>
+    <li class="active">Delete</li>
+}
+
+<form method="post">
+    
+    <input type="hidden" asp-for="IncidentId" />
+    
+    <h3 style="text-align: center; margin-top: 150px;">
+        Are you sure you want to delete incident <strong>@Model.Incident.IncidentCaseNumber</strong>?
+        <br/>
+        <small>You will not be able to undo this once the incident is deleted.</small>
+    </h3>
+    
+    <div class="form-actions no-color" style="text-align: center">
+        <button
+            bs-button
+            bs-context="@ButtonContext.Danger"
+            bs-size="@Size.Large"
+            role="button"
+            type="submit">
+            Yes
+        </button>
+        <a asp-page="@PageConstants.Details" asp-route-incidentId="@Model.IncidentId" class="btn btn-success btn-lg">No</a>
+    </div>
+
+
+</form>

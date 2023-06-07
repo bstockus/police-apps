@@ -1,0 +1,86 @@
+﻿@page
+@using Police.Business.Common
+@using Police.Business.ResistanceResponse.Incidents.Subjects.People
+@model AttachPersonSubjectModel
+@{
+    this.UseModalLayout("Attach Person Subject");
+}
+
+<input type="hidden" asp-for="IncidentId" />
+
+<bs-form-group>
+    <label>Full Name</label>
+    <input type="text"
+           required
+           maxlength="200"
+           asp-for="FullName"
+           placeholder="Subject's Full Name" />
+    <help-block></help-block>
+</bs-form-group>
+
+<bs-form-group>
+    <label>Date of Birth (mm/dd/yyyy)</label>
+    <input type="text"
+           class="form-control date-control"
+           required
+           id="dateOfBirth"
+           asp-for="DateOfBirth"
+           value=""
+           placeholder="Subject's Date of Birth" />
+    <help-block></help-block>
+</bs-form-group>
+
+<bs-form-group>
+    <label>Gender</label>
+    <select required
+            asp-for="Gender"
+            asp-items="Html.GetEnumSelectList<Gender>()"></select>
+    <help-block></help-block>
+</bs-form-group>
+
+<bs-form-group>
+    <label>Race</label>
+    <select required
+            asp-for="Race"
+            asp-items="Html.GetEnumSelectList<Race>()"></select>
+    <help-block></help-block>
+</bs-form-group>
+
+<bs-form-group>
+    <label>Suspected Uses</label>
+    <select required
+            asp-for="SuspectedUse"
+            asp-items="Html.GetEnumSelectList<SuspectedUse>()"></select>
+    <help-block></help-block>
+</bs-form-group>
+
+<bs-form-group>
+    <label>Was Subject Injured?</label>
+    <select required
+            asp-for="WasSubjectInjured"
+            asp-items="Html.GetEnumSelectList<YesNo>()"
+            data-yes-toggle="#DidSubjectRequireMedicalAttention,#DidSubjectRequireMedicalAttentionDescription"></select>
+    <help-block></help-block>
+</bs-form-group>
+
+<bs-form-group>
+    <label>Did Subject Require Medical Attention</label>
+    <select required
+            asp-for="DidSubjectRequireMedicalAttention"
+            asp-items="Html.GetEnumSelectList<YesNo>()"></select>
+    <help-block></help-block>
+</bs-form-group>
+
+<bs-form-group>
+    <label>Describe</label>
+    <textarea maxlength="1000"
+              asp-for="DidSubjectRequireMedicalAttentionDescription"></textarea>
+    <help-block></help-block>
+</bs-form-group>
+
+@section Button {
+    <button bs-context="@ButtonContext.Success"
+            type="submit">
+        Attach Person Subject
+    </button>
+}

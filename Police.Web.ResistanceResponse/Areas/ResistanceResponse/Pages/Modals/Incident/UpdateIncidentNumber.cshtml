@@ -1,0 +1,30 @@
+﻿@page
+@model UpdateIncidentNumberModel
+
+@{
+    this.UseModalLayout("Update Incident Case Number");
+
+
+}
+
+<input type="hidden" asp-for="IncidentId" />
+
+<div class="form-group">
+    <label for="caseNumber">Case Number:</label>
+    <input type="text"
+           class="form-control"
+           id="caseNumber"
+           asp-for="IncidentNumber"
+           placeholder="Enter Case Number..."
+           autocomplete="off"
+           required
+           maxlength="10" />
+    <p class="help-block">Should be in the format 19-18773 <strong>(No leading "10-")</strong>.  No more than 10 characters allowed in this field.</p>
+</div>
+
+@section Button {
+    <button bs-context="@ButtonContext.Warning"
+            type="submit">
+        Update
+    </button>
+}

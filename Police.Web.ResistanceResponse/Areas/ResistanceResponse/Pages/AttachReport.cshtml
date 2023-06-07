@@ -1,0 +1,1015 @@
+﻿@page
+@using System.Globalization
+@using Police.Business.ResistanceResponse.Incidents.Subjects.Animals
+@using Police.Business.ResistanceResponse.Incidents.Subjects.People
+@using Police.Business.ResistanceResponse.Incidents.Reports.Resistances
+@model AttachReportModel
+@{
+    this.UseLayout(Model.IsNewReport ? "Attach a Report to the Subject" : "Update Report for the Subject");
+}
+
+@section Header {
+    @(Model.IsNewReport ? "Attach a Report to the Subject" : "Update Report for the Subject")
+    
+}
+
+
+@section Breadcrumbs {
+}
+
+<form method="post" id="app">
+
+    <input type="hidden" asp-for="IncidentId" />
+    <input type="hidden" asp-for="OfficerId" />
+    <input type="hidden" asp-for="SubjectId" />
+    <input type="hidden" asp-for="IsNewReport" />
+
+    <input type="hidden" asp-for="Data" v-model="JSON.stringify(report)" />
+
+    <bs-row>
+
+        <bs-col xs="12">
+
+            <lte-box>
+
+                <lte-box-header>
+                    <lte-box-title>Basic Information</lte-box-title>
+                </lte-box-header>
+
+                <lte-box-body>
+
+                    <dl class="dl-horizontal">
+
+                        <dt>Incident</dt>
+                        <dd>
+                            Case Number <strong>@Model.IncidentInfo.IncidentCaseNumber</strong> that occured
+                            on <strong>@Model.IncidentInfo.IncidentDateAndTime.ToString("g", CultureInfo.CurrentCulture)</strong>
+                        </dd>
+
+                        <dt>Officer</dt>
+                        <dd>
+                            @Model.OfficerInfo.OfficerLastName, @Model.OfficerInfo.OfficerFirstName
+                            (@Model.OfficerInfo.OfficerBadgeNumber)
+                        </dd>
+
+                        <dt>Subject</dt>
+                        <dd>
+                            @if (Model.SubjectInfo is SubjectAnimalInfo animalSubject) {
+                                <strong>Animal:</strong>
+                                <span class="label label-default">@animalSubject.Species.GetDescription()</span>
+                            } else if (Model.SubjectInfo is SubjectPersonInfo personSubject) {
+                                <strong>Person:</strong>
+                                @:<span class="label label-default">@personSubject.Race.GetDescription() @personSubject.Gender.GetDescription()</span>
+                                @:<strong>@personSubject.FullName</strong> (Age: @(personSubject.Age?.ToString() ?? "Unknown")
+                                if (personSubject.DateOfBirth.HasValue) {
+                                    @:, DoB: @personSubject.DateOfBirth.Value.ToString("d", CultureInfo.CurrentCulture)
+                                }
+                                @:)
+                            }
+                        </dd>
+
+                    </dl>
+                </lte-box-body>
+            </lte-box>
+        </bs-col>
+
+        <bs-col xs="12">
+
+            <lte-box>
+
+                <lte-box-header>
+                    <lte-box-title>Resistances Encountered</lte-box-title>
+                </lte-box-header>
+
+                <lte-box-body>
+
+                    <div class="row">
+
+                        <resistance-item v-for="item in report.resistancesEncountered"
+                                         v-bind:resistance-item="item"
+                                         v-bind:key="item.resistanceType"
+                                         v-on:remove="removeResistanceEncountered"></resistance-item>
+
+                        <div class="col-xs-12">
+                            <h4 v-if="report.resistancesEncountered.length === 0"
+                                class="text-warning"
+                                style="text-align: center; padding-top: 5px; padding-bottom: 10px;">
+
+                                No Resistances Encountered have been added.
+
+                            </h4>
+                        </div>
+
+                        <div class="col-xs-12">
+                            <div v-if="availableResistances.length !== 0" class="btn-group btn-group-sm btn-block">
+                                <button type="button"
+                                        class="btn dropdown-toggle"
+                                        bs-context="@ButtonContext.Success"
+                                        bs-size="@Size.Small"
+                                        bs-block-style
+                                        data-toggle="dropdown"
+                                        role="button">
+
+                                    Add Resistance Encountered <span class="caret"></span>
+
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <add-resistance-item v-for="item in availableResistances"
+                                                         v-bind:resistance-item="item"
+                                                         v-bind:key="item.Value"
+                                                         v-on:btn-click="addResistanceEncountered">
+                                    </add-resistance-item>
+                                </ul>
+                            </div>
+                        </div>
+
+
+                    </div>
+
+
+
+                </lte-box-body>
+            </lte-box>
+        </bs-col>
+
+        <bs-col xs="12" v-if="report.resistancesEncountered.length !== 0">
+
+            <lte-box>
+
+                <lte-box-header>
+                    <lte-box-title>Responses Used</lte-box-title>
+                </lte-box-header>
+
+
+                <lte-box-body>
+
+                    <div class="row">
+
+                        <response-item v-for="item in report.responsesUsed"
+                                       v-bind:response-item="item"
+                                       v-bind:key="item.responseUsedIndex"
+                                       v-on:remove="removeResponseUsed"></response-item>
+
+
+
+                        <div class="col-xs-12">
+
+                            <h4 v-if="report.responsesUsed.length === 0"
+                                class="text-warning"
+                                style="text-align: center; padding-top: 5px; padding-bottom: 10px;">
+
+                                No Responses Used have been added.
+
+                            </h4>
+
+                        </div>
+
+                        <div class="col-xs-12">
+
+                            <span class="btn-group btn-group-sm btn-block">
+                                <button type="button"
+                                        class="btn dropdown-toggle"
+                                        bs-context="@ButtonContext.Success"
+                                        bs-size="@Size.Small"
+                                        bs-block-style
+                                        data-toggle="dropdown"
+                                        role="button">
+
+                                    Add Response Used <span class="caret"></span>
+
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <add-response-item v-for="item in availableResponses"
+                                                       v-bind:response-item="item"
+                                                       v-bind:key="item.Value"
+                                                       v-on:btn-click="addResponseUsed">
+                                    </add-response-item>
+                                </ul>
+                            </span>
+
+                        </div>
+
+                    </div>
+
+
+
+                </lte-box-body>
+
+                <lte-box-footer>
+                    <span class="pull-right">
+
+                        <button bs-context="@ButtonContext.Success"
+                                type="submit"
+                                v-if="report.resistancesEncountered.length !== 0">
+                            @(Model.IsNewReport ? "Attach Report" : "Update Report")
+                        </button>
+
+                    </span>
+
+                </lte-box-footer>
+
+            </lte-box>
+
+        </bs-col>
+
+    </bs-row>
+
+</form>
+
+@section Scripts {
+
+    <json-data name="Resistances" data="@(Html.GetEnumSelectList<ResistanceType>())"></json-data>
+    <json-data name="Responses" data="@Model.ResponseTypeInfos"></json-data>
+    <json-data name="ExistingReportData" data="@Model.ExistingReportData"></json-data>
+
+    <script type="text/x-template" id="body-location-map-icon">
+        <image 
+            v-bind:href="imageUrl" 
+            v-bind:x="xPoint" 
+            v-bind:y="yPoint" 
+            height="12px" 
+            width="12px"
+            v-on:click="$emit('remove', bodyUsageLocation)" />
+    </script>
+
+    <script type="text/vue" id="body-location-map">
+        <div class="body-location-map">                            
+                                                               
+            <div class="body-location-map-svg">
+                
+                <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    version="1.1" 
+                    xmlns:xlink="http://www.w3.org/1999/xlink" 
+                    width="500px" 
+                    height="405px">
+                    
+                    <image 
+                        href="/imgs/person-image.jpg" 
+                        x="0" 
+                        y="0" 
+                        height="405px" 
+                        width="500px" 
+                        class="person-image"
+                        v-on:click="add" /> 
+                    
+                    <body-location-map-icon
+                        v-for="bodyUsageLocation in currentBodyUsageLocations"
+                        v-bind:bodyUsageLocation="bodyUsageLocation"
+                        v-on:remove="remove">
+                    </body-location-map-icon>
+                                        
+                </svg>
+            
+            </div>
+            
+            <div class="btn-group">
+                <button 
+                    type="button"
+                    class="btn"
+                    v-bind:class="{'btn-primary': currentMode === 0, 'btn-default': currentMode !== 0}"
+                    v-on:click="setModeToProbeDeploy"
+                    v-if="this.isProbeDeploySelected">
+                        Probe Deploy
+                </button>
+                <button 
+                    type="button"
+                    class="btn btn-default"
+                    v-bind:class="{'btn-primary': currentMode === 1, 'btn-default': currentMode !== 1}"
+                    v-on:click="setModeToDriveStun"
+                    v-if="this.isDriveStunSelected">
+                        Drive Stun
+                </button>
+                <button 
+                    type="button"
+                    class="btn btn-default"
+                    v-bind:class="{'btn-primary': currentMode === -1, 'btn-default': currentMode !== -1}"
+                    v-on:click="setModeToErase">
+                        Erase
+                </button>
+            </div>
+            
+        </div>
+    </script>
+
+    <script type="text/vue" id="add-resistance-item-template">
+        <li>
+            <a href="#" v-on:click="$emit('btn-click', resistanceItem.Value)">{{resistanceItem.Text}}</a>
+        </li>
+    </script>
+
+    <script type="text/vue" id="add-response-item-template">
+        <li>
+            <a href="#" v-on:click="$emit('btn-click', responseItem.Value)">{{responseItem.Text}}</a>
+        </li>
+    </script>
+
+    <script type="text/vue" id="resistance-item-template">
+
+        <div class="col-xs-12">
+
+            <div class="box box-default box-solid">
+                <div class="box-header with-border">
+                    <h3 class="box-title">{{resistanceItem.resistanceTypeName}}</h3>
+                    <div class="box-tools pull-right">
+                        <button type="button"
+                                class="btn btn-box-tool"
+                                v-on:click="$emit('remove', resistanceItem.resistanceType)">
+
+                            <i class="fa fa-trash"
+                               data-toggle="tooltip"
+                               data-placement="bottom"
+                               title="Remove">
+                            </i>
+
+                        </button>
+                    </div>
+                </div>
+                <div class="box-body">
+
+                    <h4 style="margin: 0;">Description</h4>
+                    <textarea v-model="resistanceItem.description"
+                              placeholder="description"
+                              maxlength="1000"
+                              style="width: 100%;"></textarea>
+                </div>
+            </div>
+
+
+        </div>
+
+    </script>
+
+    <script type="text/vue" id="response-item-template">
+
+        <div class="col-xs-12">
+
+            <div class="box box-default box-solid">
+                <div class="box-header with-border">
+                    <h3 class="box-title">{{responseItem.responseTypeName}}</h3>
+                    <div class="box-tools pull-right">
+                        <button type="button"
+                                class="btn btn-box-tool"
+                                v-on:click="$emit('remove', responseItem.responseUsedIndex)">
+
+                            <i class="fa fa-trash"
+                               data-toggle="tooltip"
+                               data-placement="bottom"
+                               title="Remove">
+                            </i>
+
+                        </button>
+                    </div>
+                </div>
+                <div class="box-body">
+
+                    <div class="form-group">
+                        <label>Was Effective?</label>
+                        <select class="form-control" v-model="responseItem.wasEffective">
+                            <option value="0">No</option>
+                            <option value="1">Yes</option>
+                        </select>
+                    </div>
+                    
+                    <div class="box box-default box-solid" v-if="responseItem.isFireArmDeadlyForceAddendumRequired">
+                        <div class="box-header with-border">
+                            <h3 class="box-title">Firearm Deadly Force Addendum</h3>
+                        </div>
+                        <div class="box-body">
+
+                            <div class="form-group"
+                                 v-bind:class="{'has-error': responseItem.fireArmDeadlyForce.fireArmModel.length === 0}">
+                                <label>Make</label>
+                                <input type="text"
+                                       class="form-control"
+                                       v-model="responseItem.fireArmDeadlyForce.fireArmModel"
+                                       maxlength="100"
+                                       required />
+                                <span class="help-block"
+                                      v-if="responseItem.fireArmDeadlyForce.fireArmModel.length === 0">
+                                    This is a required field.
+                                </span>
+                            </div>
+
+                            <div class="form-group"
+                                 v-bind:class="{'has-error': responseItem.fireArmDeadlyForce.fireArmMake.length === 0}">
+                                <label>Model</label>
+                                <input type="text"
+                                       class="form-control"
+                                       v-model="responseItem.fireArmDeadlyForce.fireArmMake"
+                                       maxlength="100"
+                                       required />
+                                <span class="help-block"
+                                      v-if="responseItem.fireArmDeadlyForce.fireArmMake.length === 0">
+                                    This is a required field.
+                                </span>
+                            </div>
+
+                            <div class="form-group"
+                                 v-bind:class="{'has-error': responseItem.fireArmDeadlyForce.fireArmAmmoType.length === 0}">
+                                <label>Ammo Type</label>
+                                <input type="text"
+                                       class="form-control"
+                                       v-model="responseItem.fireArmDeadlyForce.fireArmAmmoType"
+                                       maxlength="100"
+                                       required />
+                                <span class="help-block"
+                                      v-if="responseItem.fireArmDeadlyForce.fireArmAmmoType.length === 0">
+                                    This is a required field.
+                                </span>
+                            </div>
+
+                            <div class="form-group"
+                                 v-bind:class="{'has-error': responseItem.fireArmDeadlyForce.fireArmSerialNumber.length === 0}">
+                                <label>Serial Number</label>
+                                <input type="text"
+                                       class="form-control"
+                                       v-model="responseItem.fireArmDeadlyForce.fireArmSerialNumber"
+                                       maxlength="100"
+                                       required />
+                                <span class="help-block"
+                                      v-if="responseItem.fireArmDeadlyForce.fireArmSerialNumber.length === 0">
+                                    This is a required field.
+                                </span>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div class="box box-default box-solid" v-if="responseItem.isOtherDeadlyForceAddendumRequired">
+                        <div class="box-header with-border">
+                            <h3 class="box-title">Other Deadly Force Addendum</h3>
+                        </div>
+                        <div class="box-body">
+
+                            <div class="form-group">
+                                <label>Description</label>
+                                <textarea v-model="responseItem.otherDeadlyForce.otherDeadlyForceDescription"
+                                          placeholder="description"
+                                          maxlength="1000"
+                                          style="width: 100%;"></textarea>
+                            </div>
+
+
+                        </div>
+                    </div>
+
+                    <div class="box box-default box-solid" v-if="responseItem.isPitUsageAddendumRequired">
+                        <div class="box-header with-border">
+                            <h3 class="box-title">PIT Usage Addendum</h3>
+                        </div>
+                        <div class="box-body">
+
+                            <div class="form-group"
+                                 v-bind:class="{'has-error': responseItem.pitUsage.pitUsageVehicleSpeed < 0 || responseItem.pitUsage.pitUsageVehicleSpeed > 250 || responseItem.pitUsage.pitUsageVehicleSpeed.length === 0}">
+                                <label>Approximate Speed at time of P.I.T. (in MPH)</label>
+                                <input type="number"
+                                       class="form-control"
+                                       v-model="responseItem.pitUsage.pitUsageVehicleSpeed"
+                                       required
+                                       min="0"
+                                       max="250" />
+                                <span class="help-block"
+                                      v-if="responseItem.pitUsage.pitUsageVehicleSpeed < 0 || responseItem.pitUsage.pitUsageVehicleSpeed > 250 || responseItem.pitUsage.pitUsageVehicleSpeed.length === 0">
+                                    Must be between 0 and 250.
+                                </span>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Was the Suspect Vehicle Immobilized?</label>
+                                <select class="form-control" v-model="responseItem.pitUsage.wasSuspectVehicleImmobilized">
+                                    <option value="0">No</option>
+                                    <option value="1">Yes</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Was there secondary impact by suspect vehicle after PIT?</label>
+                                <select class="form-control" v-model="responseItem.pitUsage.wasSecondaryImpactBySuspectVehicleAfterPit">
+                                    <option value="0">No</option>
+                                    <option value="1">Yes</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group" v-if="responseItem.pitUsage.wasSecondaryImpactBySuspectVehicleAfterPit == 1">
+                                <label>Describe what was impacted by suspect vehicle after PIT</label>
+                                <textarea v-model="responseItem.pitUsage.secondaryImpactBySuspectVehicleAfterPitPartsImpacted"
+                                          placeholder="description"
+                                          maxlength="1000"
+                                          style="width: 100%;"></textarea>
+                            </div>
+
+
+                        </div>
+                    </div>
+
+                    <div class="box box-default box-solid" v-if="responseItem.isTaserUsageAddendumRequired">
+                        <div class="box-header with-border">
+                            <h3 class="box-title">Taser Usage Addendum</h3>
+                        </div>
+                        <div class="box-body">
+                            
+                            <div class="form-group">
+                                <label>Taser Methods Used:</label>
+                                <div class="checkbox">
+                                    <label>
+                                        <input type="checkbox"
+                                               v-model="responseItem.taserUsage.wasLaserDisplayUsed"/>
+                                        Laser Display
+                                    </label>
+                                </div>
+                                <div class="checkbox">
+                                    <label>
+                                        <input type="checkbox"
+                                               v-model="responseItem.taserUsage.wasArcDisplayUsed"/>
+                                        Arc Display
+                                    </label>
+                                </div>
+                                <div class="checkbox">
+                                    <label>
+                                        <input type="checkbox"
+                                               v-model="responseItem.taserUsage.wasDriveStunUsed"/>
+                                        Drive Stun
+                                    </label>
+                                </div>
+                                <div class="checkbox">
+                                    <label>
+                                        <input type="checkbox"
+                                               v-model="responseItem.taserUsage.wasProbeDeployUsed"/>
+                                        Probe Deploy
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group"
+                                 v-if="responseItem.taserUsage.wasDriveStunUsed || responseItem.taserUsage.wasProbeDeployUsed">
+                                <label>Was there probe contact?</label>
+                                <select class="form-control" v-model="responseItem.taserUsage.didProbesContact">
+                                    <option value="0">No</option>
+                                    <option value="1">Yes</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group"
+                                 v-bind:class="{'has-error': responseItem.taserUsage.cyclesApplied < 1 || responseItem.taserUsage.cyclesApplied > 20 || responseItem.taserUsage.cyclesApplied.length === 0}"
+                                 v-if="responseItem.taserUsage.wasDriveStunUsed || responseItem.taserUsage.wasProbeDeployUsed">
+                                <label>How many total cycles applied?</label>
+                                <input type="number"
+                                       class="form-control"
+                                       v-model="responseItem.taserUsage.cyclesApplied"
+                                       required
+                                       min="1"
+                                       max="20" />
+                                <span class="help-block"
+                                      v-if="responseItem.taserUsage.cyclesApplied < 1 || responseItem.taserUsage.cyclesApplied > 20 || responseItem.taserUsage.cyclesApplied.length === 0">
+                                    Must be between 1 and 20.
+                                </span>
+                            </div>
+                            
+                            <div class="form-group"
+                                 v-bind:class="{'has-error': responseItem.taserUsage.distanceWhenLaunched < 0 || responseItem.taserUsage.distanceWhenLaunched > 100 || responseItem.taserUsage.distanceWhenLaunched.length === 0}"
+                                 v-if="responseItem.taserUsage.wasProbeDeployUsed">
+                                <label>What was the approximate distance at the time the dart was launched between the officer & Subject (ft)?</label>
+                                <input type="number"
+                                       class="form-control"
+                                       v-model="responseItem.taserUsage.distanceWhenLaunched"
+                                       required
+                                       min="0"
+                                       max="100" />
+                                <span class="help-block"
+                                      v-if="responseItem.taserUsage.distanceWhenLaunched < 0 || responseItem.taserUsage.distanceWhenLaunched > 100 || responseItem.taserUsage.distanceWhenLaunched.length === 0">
+                                    Must be between 0 and 100.
+                                </span>
+                            </div>
+                            
+                            <div class="form-group"
+                                 v-bind:class="{'has-error': responseItem.taserUsage.distanceBetweenProbes < 0 || responseItem.taserUsage.distanceBetweenProbes > 48 || responseItem.taserUsage.distanceBetweenProbes.length === 0}"
+                                 v-if="responseItem.taserUsage.wasProbeDeployUsed">
+                                <label>Distance Between Probes (in)</label>
+                                <input type="number"
+                                       class="form-control"
+                                       v-model="responseItem.taserUsage.distanceBetweenProbes"
+                                       required
+                                       min="0"
+                                       max="48" />
+                                <span class="help-block"
+                                      v-if="responseItem.taserUsage.distanceBetweenProbes < 0 || responseItem.taserUsage.distanceBetweenProbes > 48 || responseItem.taserUsage.distanceBetweenProbes.length === 0">
+                                    Must be between 0 and 48.
+                                </span>
+                            </div>
+                            
+                            <div class="form-group"
+                                 v-if="responseItem.taserUsage.wasDriveStunUsed || responseItem.taserUsage.wasProbeDeployUsed">
+                                <label>Was there a need for additional shots?</label>
+                                <select class="form-control" v-model="responseItem.taserUsage.additionalShotsRequired">
+                                    <option value="0">No</option>
+                                    <option value="1">Yes</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group"
+                                 v-if="responseItem.taserUsage.wasDriveStunUsed || responseItem.taserUsage.wasProbeDeployUsed">
+                                <label>Was the subject wearing layered/heavy clothes?</label>
+                                <select class="form-control" v-model="responseItem.taserUsage.subjectWearingHeavyClothing">
+                                    <option value="0">No</option>
+                                    <option value="1">Yes</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group"
+                                 v-if="responseItem.taserUsage.wasProbeDeployUsed">
+                                <label>If the probes were deployed, did they penetrate the skin? </label>
+                                <select class="form-control" v-model="responseItem.taserUsage.didProbesPenetrateSkin">
+                                    <option value="0">No</option>
+                                    <option value="1">Yes</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group"
+                                 v-if="responseItem.taserUsage.wasProbeDeployUsed && responseItem.taserUsage.didProbesPenetrateSkin === '1'">
+                                <label>Were the probes removed at the scene?</label>
+                                <select class="form-control" v-model="responseItem.taserUsage.wereProbesRemovedAtScene">
+                                    <option value="0">No</option>
+                                    <option value="1">Yes</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group" 
+                                 v-if="responseItem.taserUsage.wasProbeDeployUsed && responseItem.taserUsage.didProbesPenetrateSkin === '1'">
+                                <label>Who removed the probes?</label>
+                                <textarea v-model="responseItem.taserUsage.whoRemovedProbes"
+                                          placeholder="description"
+                                          maxlength="1000"
+                                          style="width: 100%;"></textarea>
+                            </div>
+
+                            <div class="form-group"
+                                 v-if="responseItem.taserUsage.wasDriveStunUsed || responseItem.taserUsage.wasProbeDeployUsed">
+                                <label>Any secondary injuries from Taser use?</label>
+                                <select class="form-control" v-model="responseItem.taserUsage.anySecondaryInjuriesFromTaserUsage">
+                                    <option value="0">No</option>
+                                    <option value="1">Yes</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group"
+                                 v-if="(responseItem.taserUsage.wasDriveStunUsed || responseItem.taserUsage.wasProbeDeployUsed) && responseItem.taserUsage.anySecondaryInjuriesFromTaserUsage === '1'">
+                                <label>Was medical attention required needed?</label>
+                                <select class="form-control" v-model="responseItem.taserUsage.wasMedicalAttentionRequiredForSecondaryInjuries">
+                                    <option value="0">No</option>
+                                    <option value="1">Yes</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group"
+                                 v-bind:class="{'has-error': responseItem.taserUsage.numberOfPhotosTaken < 0 || responseItem.taserUsage.numberOfPhotosTaken.length === 0}"
+                                 v-if="responseItem.taserUsage.wasDriveStunUsed || responseItem.taserUsage.wasProbeDeployUsed">
+                                <label>How many photos were taken?</label>
+                                <input type="number"
+                                       class="form-control"
+                                       v-model="responseItem.taserUsage.numberOfPhotosTaken"
+                                       required
+                                       min="0" />
+                                <span class="help-block"
+                                      v-if="responseItem.taserUsage.numberOfPhotosTaken < 0 || responseItem.taserUsage.numberOfPhotosTaken.length === 0">
+                                    Must be 0 or more.
+                                </span>
+                            </div>
+                            
+                            <div class="form-group"
+                                 v-if="responseItem.taserUsage.wasDriveStunUsed || responseItem.taserUsage.wasProbeDeployUsed">
+                                <label>Which camera?</label>
+                                <input type="text"
+                                       class="form-control"
+                                       v-model="responseItem.taserUsage.cameraUsedToTakePhotos"
+                                       maxlength="200"/>
+                            </div>
+                            
+                            <div class="form-group"
+                                 v-if="responseItem.taserUsage.wasProbeDeployUsed">
+                                <label>Taser Cartridge Number if used</label>
+                                <input type="text"
+                                       class="form-control"
+                                       v-model="responseItem.taserUsage.taserCartridgeNumberUsed"
+                                       maxlength="50"/>
+                            </div>
+
+                            <div class="form-group"
+                                 v-bind:class="{'has-error': responseItem.taserUsage.taserSerialNumber.length === 0}">
+                                <label>Taser Serial Number</label>
+                                <input type="text"
+                                       class="form-control"
+                                       v-model="responseItem.taserUsage.taserSerialNumber"
+                                       maxlength="50"
+                                       required />
+                                <span class="help-block"
+                                      v-if="responseItem.taserUsage.taserSerialNumber.length === 0">
+                                    This is a required field.
+                                </span>
+                            </div>
+                            
+                            <body-location-map
+                                v-bind:bodyUsageLocations.sync="responseItem.taserUsage.bodyUsageLocations"
+                                v-bind:isDriveStunSelected="responseItem.taserUsage.wasDriveStunUsed"
+                                v-bind:isProbeDeploySelected="responseItem.taserUsage.wasProbeDeployUsed"
+                                v-if="responseItem.taserUsage.wasDriveStunUsed || responseItem.taserUsage.wasProbeDeployUsed">
+                            </body-location-map>
+
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+
+        </div>
+
+    </script>
+
+    <script src="~/js/vue.min.js"></script>
+
+    <script type="text/javascript">
+
+        var bodyUsageImageMap = {
+            0: "/imgs/probe-deploy.png",
+            1: "/imgs/drive-stun.png"
+        }
+
+        var responseUsedCounter = 0;
+
+        var ResistancesLookup = _.keyBy(Resistances, 'Value');
+        var ResponsesLookup = _.keyBy(Responses, 'Value');
+
+        Vue.component('body-location-map-icon',
+            {
+                props: ['bodyUsageLocation'],
+                template: $('#body-location-map-icon').html(),
+                computed: {
+                    imageUrl: function() {
+                        return bodyUsageImageMap[this.bodyUsageLocation.bodyUsageType];
+                    },
+                    xPoint: function() {
+                        return this.bodyUsageLocation.x;
+                    },
+                    yPoint: function() {
+                        return this.bodyUsageLocation.y;
+                    }
+                }
+            });
+
+        Vue.component('body-location-map',
+            {
+                props: [
+                    'bodyUsageLocations',
+                    'isDriveStunSelected',
+                    'isProbeDeploySelected'],
+                data: function() {
+                    return {
+                        currentMode: this.isProbeDeploySelected === true ? 0 : 1,
+                        currentBodyUsageLocations: this.bodyUsageLocations
+                    };
+                },
+                template: $('#body-location-map').html(),
+                watch: {
+                    isDriveStunSelected: function(newVal, oldVal) {
+                        if (newVal === false && this.currentMode === 1) {
+                            this.currentMode = 0;
+                        }
+                    },
+                    isProbeDeploySelected: function(newVal, oldVal) {
+                        if (newVal === false && this.currentMode === 0) {
+                            this.currentMode = 1;
+                        }
+                    }
+                },
+                methods: {
+                    add: function(event) {
+                        if (this.currentMode === 0 || this.currentMode === 1) {
+                            console.log(event);
+
+                            var newBodyUsageLocation = {
+                                bodyUsageType: this.currentMode,
+                                x: Math.floor(event.offsetX - 6),
+                                y: Math.floor(event.offsetY - 6)
+                            };
+
+                            if (_.find(this.currentBodyUsageLocations,
+                                    newBodyUsageLocation) ===
+                                undefined) {
+
+                                console.log("No Existing Matches!");
+
+                                this.currentBodyUsageLocations.push(newBodyUsageLocation);
+                                this.$emit('update:bodyUsageLocations', this.currentBodyUsageLocations);
+
+                            }
+
+                        }
+                    },
+                    remove: function(event) {
+                        if (this.currentMode === -1) {
+                            this.currentBodyUsageLocations = _.filter(
+                                this.currentBodyUsageLocations,
+                                function(o) {
+                                    return o.bodyUsageType !== event.bodyUsageType ||
+                                        o.x !== event.x ||
+                                        o.y !== event.y;
+                                });
+                            this.$emit('update:bodyUsageLocations', this.currentBodyUsageLocations);
+                        }
+                    },
+                    setModeToProbeDeploy: function(event) {
+                        this.currentMode = 0;
+                    },
+                    setModeToDriveStun: function(event) {
+                        this.currentMode = 1;
+                    },
+                    setModeToErase: function(event) {
+                        this.currentMode = -1;
+                    }
+                }
+            });
+
+        Vue.component('add-resistance-item',
+            {
+                props: ['resistanceItem'],
+                template: $('#add-resistance-item-template').html()
+            });
+
+        Vue.component('resistance-item',
+            {
+                props: ['resistanceItem'],
+                template: $('#resistance-item-template').html()
+            })
+
+        Vue.component('add-response-item',
+            {
+                props: ['responseItem'],
+                template: $('#add-response-item-template').html()
+            });
+
+        Vue.component('response-item',
+            {
+                props: ['responseItem'],
+                template: $('#response-item-template').html()
+            });
+
+        var existingResistancesEncountered = [];
+        var existingResponsesUsed = [];
+        var availableResistances = Resistances;
+
+        if (ExistingReportData !== null && ExistingReportData !== undefined) {
+
+            ExistingReportData.resistancesEncountered.forEach(function(resistance) {
+                var resistanceItem = ResistancesLookup[resistance.resistanceType];
+                availableResistances = _.filter(this.availableResistances,
+                    function(o) {
+                        return o.Value !== resistanceItem.Value;
+                    });
+                existingResistancesEncountered.push(
+                    {
+                        "resistanceType": resistanceItem.Value,
+                        "resistanceTypeName": resistanceItem.Text,
+                        "description": resistance.description
+                    }
+                );
+            });
+
+            ExistingReportData.responsesUsed.forEach(function(response) {
+                var responseItem = ResponsesLookup[response.responseType];
+
+                var responseToAdd = {
+                    "responseType": responseItem.Value,
+                    "responseTypeName": responseItem.Text,
+                    "wasEffective": response.wasEffective,
+                    "responseUsedIndex": responseUsedCounter++,
+                    "responseId": response.responseId,
+                    "isFireArmDeadlyForceAddendumRequired": responseItem.IsFireArmDeadlyForceAddendumRequired,
+                    "isOtherDeadlyForceAddendumRequired": responseItem.IsOtherDeadlyForceAddendumRequired,
+                    "isPitUsageAddendumRequired": responseItem.IsPitUsageAddendumRequired,
+                    "isTaserUsageAddendumRequired": responseItem.IsTaserUsageAddendumRequired,
+                    "fireArmDeadlyForce": response.fireArmDeadlyForce,
+                    "otherDeadlyForce": response.otherDeadlyForce,
+                    "pitUsage": response.pitUsage,
+                    "taserUsage": response.taserUsage
+                };
+
+                existingResponsesUsed.push(responseToAdd);
+            });
+
+        }
+
+        var app = new Vue({
+            el: '#app',
+            data: {
+                availableResistances: availableResistances,
+                availableResponses: Responses,
+                report: {
+                    resistancesEncountered: existingResistancesEncountered,
+                    responsesUsed: existingResponsesUsed
+                }
+            },
+            methods: {
+                addResistanceEncountered: function(event) {
+                    var resistanceItem = ResistancesLookup[event];
+                    this.availableResistances = _.filter(this.availableResistances,
+                        function(o) {
+                            return o.Value !== resistanceItem.Value;
+                        });
+                    this.report.resistancesEncountered.push(
+                        {
+                            "resistanceType": resistanceItem.Value,
+                            "resistanceTypeName": resistanceItem.Text,
+                            "description": ""
+                        }
+                    );
+                },
+                removeResistanceEncountered: function(event) {
+                    var resistanceItem = ResistancesLookup[event];
+                    this.availableResistances.push(resistanceItem);
+                    this.report.resistancesEncountered =
+                        _.filter(
+                            this.report.resistancesEncountered,
+                            function(o) {
+                                return o.resistanceType !== resistanceItem.Value;
+                            }
+                        );
+                },
+                addResponseUsed: function(event) {
+                    var responseItem = ResponsesLookup[event];
+
+                    var responseToAdd = {
+                        "responseType": responseItem.Value,
+                        "responseTypeName": responseItem.Text,
+                        "wasEffective": 0,
+                        "responseUsedIndex": responseUsedCounter++,
+                        "isFireArmDeadlyForceAddendumRequired": responseItem.IsFireArmDeadlyForceAddendumRequired,
+                        "isOtherDeadlyForceAddendumRequired": responseItem.IsOtherDeadlyForceAddendumRequired,
+                        "isPitUsageAddendumRequired": responseItem.IsPitUsageAddendumRequired,
+                        "isTaserUsageAddendumRequired": responseItem.IsTaserUsageAddendumRequired
+                    };
+
+                    if (responseToAdd.isFireArmDeadlyForceAddendumRequired) {
+                        responseToAdd["fireArmDeadlyForce"] = {
+                            "fireArmMake": "",
+                            "fireArmModel": "",
+                            "fireArmSerialNumber": "",
+                            "fireArmAmmoType": ""
+                        }
+                    }
+
+                    if (responseToAdd.isOtherDeadlyForceAddendumRequired) {
+                        responseToAdd["otherDeadlyForce"] = {
+                            "otherDeadlyForceDescription": ""
+                        }
+                    }
+
+                    if (responseToAdd.isPitUsageAddendumRequired) {
+                        responseToAdd["pitUsage"] = {
+                            "pitUsageVehicleSpeed": 0,
+                            "wasSuspectVehicleImmobilized": 0,
+                            "wasSecondaryImpactBySuspectVehicleAfterPit": 0,
+                            "secondaryImpactBySuspectVehicleAfterPitPartsImpacted": ""
+                        }
+                    }
+
+                    if (responseToAdd.isTaserUsageAddendumRequired) {
+                        responseToAdd["taserUsage"] = {
+                            "wasLaserDisplayUsed": false,
+                            "wasArcDisplayUsed": false,
+                            "wasDriveStunUsed": false,
+                            "wasProbeDeployUsed": false,
+                            "taserSerialNumber": "",
+                            "didProbesContact": 0,
+                            "cyclesApplied": 0,
+                            "distanceWhenLaunched": 0,
+                            "distanceBetweenProbes": 0,
+                            "additionalShotsRequired": 0,
+                            "subjectWearingHeavyClothing": 0,
+                            "didProbesPenetrateSkin": 0,
+                            "wereProbesRemovedAtScene": 0,
+                            "whoRemovedProbes": "",
+                            "anySecondaryInjuriesFromTaserUsage": 0,
+                            "wasMedicalAttentionRequiredForSecondaryInjuries": 0,
+                            "numberOfPhotosTaken": 0,
+                            "cameraUsedToTakePhotos": "",
+                            "taserCartridgeNumberUsed": "",
+                            "bodyUsageLocations": []
+                        }
+                    }
+
+                    this.report.responsesUsed.push(responseToAdd);
+                },
+                removeResponseUsed: function(event) {
+                    this.report.responsesUsed = _.filter(
+                        this.report.responsesUsed,
+                        function(o) {
+                            return o.responseUsedIndex !== event;
+                        });
+                }
+            }
+        });
+
+    </script>
+
+}

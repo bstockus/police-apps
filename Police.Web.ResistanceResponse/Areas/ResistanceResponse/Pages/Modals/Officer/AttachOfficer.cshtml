@@ -1,0 +1,47 @@
+﻿@page
+@using Police.Business.Common
+@model AttachOfficerModel
+@{
+    this.UseModalLayout("Attach Officer");
+}
+
+<input type="hidden" asp-for="IncidentId" />
+
+<bs-form-group>
+    <label>Officer</label>
+    <select required
+            asp-for="OfficerId"
+            asp-items="@Model.OfficerSelectListItems"></select>
+    <help-block></help-block>
+</bs-form-group>
+
+<bs-form-group>
+    <label>Was Officer Injured?</label>
+    <select required
+            asp-for="WasOfficerInjured"
+            asp-items="Html.GetEnumSelectList<YesNo>()"
+            data-yes-toggle="#DidOfficerRequireMedicalAttention,#DidOfficerRequireMedicalAttentionDescription"></select>
+    <help-block></help-block>
+</bs-form-group>
+
+<bs-form-group>
+    <label>Did Officer Require Medical Attention</label>
+    <select required
+            asp-for="DidOfficerRequireMedicalAttention"
+            asp-items="Html.GetEnumSelectList<YesNo>()"></select>
+    <help-block></help-block>
+</bs-form-group>
+
+<bs-form-group>
+    <label>Describe</label>
+    <textarea maxlength="1000"
+              asp-for="DidOfficerRequireMedicalAttentionDescription"></textarea>
+    <help-block></help-block>
+</bs-form-group>
+
+@section Button {
+    <button bs-context="@ButtonContext.Warning"
+            type="submit">
+        Attach
+    </button>
+}

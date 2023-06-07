@@ -1,0 +1,52 @@
+﻿@using Police.Business.ResistanceResponse.Incidents.Reports.Resistances
+@model IEnumerable<Police.Business.ResistanceResponse.Incidents.Reports.ReportInfo.ReportResistanceInfo>
+
+@{
+    var incidentId = ViewData["IncidentId"];
+    var officerId = ViewData["OfficerId"];
+    var subjectId = ViewData["SubjectId"];
+
+    var usedResistances = Model.Select(_ => ((int)(_.ResistanceType)).ToString());
+
+    var remainingResistances = Html.GetEnumSelectList<ResistanceType>().Count(_ => !usedResistances.Contains(_.Value));
+
+}
+
+<lte-box-body padding="false">
+
+    <hr style="margin-top: 0; margin-bottom: 0;" />
+
+    <p class="lead" style="padding-left: 10px; padding-right: 10px; margin: 0;">
+        Resistance Encountered:
+    </p>
+
+    <datatable table-id="resistance" table-type="Basic">
+
+        <datatable-headers>
+
+            <datatable-header>Resistance</datatable-header>
+            <datatable-header>Description</datatable-header>
+
+        </datatable-headers>
+
+        <datatable-body>
+
+            @foreach (var resistance in Model) {
+                <datatable-row>
+
+                    <datatable-cell>
+                        @resistance.ResistanceType.GetDescription()
+                    </datatable-cell>
+
+                    <datatable-cell>
+                        @resistance.Description
+                    </datatable-cell>
+
+                </datatable-row>
+            }
+
+        </datatable-body>
+
+    </datatable>
+
+</lte-box-body>

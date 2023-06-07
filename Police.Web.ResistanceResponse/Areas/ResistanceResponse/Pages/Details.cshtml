@@ -1,0 +1,770 @@
+﻿@page
+@using NodaTime.Text
+@using System.Globalization
+@using Police.Business.Common
+@using Police.Business.ResistanceResponse
+@using Police.Business.ResistanceResponse.Approvals
+@using Police.Business.ResistanceResponse.Incidents.Reports
+@using Police.Business.ResistanceResponse.Incidents.Subjects.Animals
+@using Police.Business.ResistanceResponse.Incidents.Subjects.People
+@using Police.Web.ResistanceResponse.Helpers
+@using Police.Web.ResistanceResponse.ViewModels
+@model DetailsModel
+@{
+    this.UseLayout($"Case Number {Model.Incident.IncidentCaseNumber}");
+    ViewData["UserInformation"] = Model.UserInformation;
+}
+
+@section Header {
+    Response to Resistance Report for Case Number <strong>@Model.Incident.IncidentCaseNumber</strong>
+
+}
+
+
+@section Breadcrumbs {
+    <li>@Model.Incident.IncidentCaseNumber</li>
+    <li class="active">Details</li>
+}
+
+@if (!string.IsNullOrWhiteSpace(Model.Message)) {
+    <alert context="Info">@Model.Message</alert>
+}
+
+<form method="post">
+
+    <input type="hidden" asp-for="IncidentId" />
+
+    @if (Model.CanUserReSubmitIncidentOrAnyChildrenAsOfficer) {
+
+        <alert context="Danger">
+            You have items that were rejected require your review and resubmission
+
+
+            <button bs-button
+                    asp-page-handler="SubmitChangesAsOfficer"
+                    bs-context="@ButtonContext.Warning"
+                    bs-size="@Size.Default"
+                    role="button"
+                    type="submit"
+                    class="pull-right">
+                Re-Submit Changes for Approval
+            </button>
+
+            <h5>Items Rejected:</h5>
+
+            <ul>
+
+                @if (Model.Incident.IsUserAllowedToReSubmitAsOfficer(Model.UserInformation)) {
+                    <li>Case Number and Incident Date and Time:<br />@(Model.Incident.IsRejectedBySupervisor() ? Model.Incident.SupervisorsComments ?? "" : Model.Incident.TrainingsComments ?? "")</li>
+                }
+
+                @foreach (var officerToSubmit in Model.Incident.IncidentOfficers.Where(_ => _.IsUserAllowedToReSubmitAsOfficer(Model.UserInformation))) {
+                    <li>
+                        Injury Information for Officer <strong>@officerToSubmit.OfficerFirstName @officerToSubmit.OfficerLastName</strong> (@officerToSubmit.OfficerBadgeNumber):<br />
+                        @(officerToSubmit.IsRejectedBySupervisor() ? officerToSubmit.SupervisorsComments ?? "" : officerToSubmit.TrainingsComments ?? "")
+                    </li>
+                }
+
+                @foreach (var subjectToSubmit in Model.Incident.Subjects.Where(_ => _.IsUserAllowedToReSubmitAsOfficer(Model.UserInformation))) {
+                    if (subjectToSubmit is SubjectAnimalInfo animalSubjectToSubmit) {
+                        <li>Information for Animal Subject <strong>@animalSubjectToSubmit.Species.GetDescription()</strong>:<br />@(subjectToSubmit.IsRejectedBySupervisor() ? subjectToSubmit.SupervisorsComments ?? "" : subjectToSubmit.TrainingsComments ?? "")</li>
+                    } else if (subjectToSubmit is SubjectPersonInfo personSubjectToSubmit) {
+                        <li>Information for Person Subject <strong>@personSubjectToSubmit.FullName</strong>:<br />@(subjectToSubmit.IsRejectedBySupervisor() ? subjectToSubmit.SupervisorsComments ?? "" : subjectToSubmit.TrainingsComments ?? "")</li>
+                    }
+                }
+
+                @foreach (var reportToSubmit in Model.Incident.Reports.Where(_ => _.IsUserAllowedToReSubmitAsOfficer(Model.UserInformation))) {
+                    if (reportToSubmit.Subject is SubjectAnimalInfo animalSubjectToSubmit) {
+                        <li>
+                            Report for Animal Subject <strong>@animalSubjectToSubmit.Species.GetDescription()</strong>
+                            by Officer <strong>@reportToSubmit.OfficerFirstName @reportToSubmit.OfficerLastName</strong>
+                            (@reportToSubmit.OfficerBadgeNumber):<br />@(reportToSubmit.IsRejectedBySupervisor() ? reportToSubmit.SupervisorsComments ?? "" : reportToSubmit.TrainingsComments ?? "")
+                        </li>
+                    } else if (reportToSubmit.Subject is SubjectPersonInfo personSubjectToSubmit) {
+                        <li>
+                            Report for Person Subject <strong>@personSubjectToSubmit.FullName</strong>
+                            by Officer <strong>@reportToSubmit.OfficerFirstName @reportToSubmit.OfficerLastName</strong>
+                            (@reportToSubmit.OfficerBadgeNumber):<br />@(reportToSubmit.IsRejectedBySupervisor() ? reportToSubmit.SupervisorsComments ?? "" : reportToSubmit.TrainingsComments ?? "")
+                        </li>
+                    }
+                }
+
+            </ul>
+
+
+        </alert>
+
+    }
+
+    @if (Model.CanUserOriginalSubmitIncidentOrAnyChildrenAsOfficer) {
+
+        <alert context="Success">
+            You have changes that have not been submitted for approval yet.
+
+
+            <button bs-button
+                    asp-page-handler="SubmitChangesAsOfficer"
+                    bs-context="@ButtonContext.Warning"
+                    bs-size="@Size.Default"
+                    role="button"
+                    type="submit"
+                    class="pull-right">
+                Submit Changes for Approval
+            </button>
+
+            <h5>Changes to Submit:</h5>
+
+            <ul>
+
+                @if (Model.Incident.IsUserAllowedToSubmitAsOfficer(Model.UserInformation)) {
+                    <li>Case Number and Incident Date and Time</li>
+                }
+
+                @foreach (var officerToSubmit in Model.Incident.IncidentOfficers.Where(_ => _.IsUserAllowedToSubmitAsOfficer(Model.UserInformation))) {
+                    <li>Injury Information for Officer <strong>@officerToSubmit.OfficerFirstName @officerToSubmit.OfficerLastName</strong> (@officerToSubmit.OfficerBadgeNumber)</li>
+                }
+
+                @foreach (var subjectToSubmit in Model.Incident.Subjects.Where(_ => _.IsUserAllowedToSubmitAsOfficer(Model.UserInformation))) {
+                    if (subjectToSubmit is SubjectAnimalInfo animalSubjectToSubmit) {
+                        <li>Information for Animal Subject <strong>@animalSubjectToSubmit.Species.GetDescription()</strong></li>
+                    } else if (subjectToSubmit is SubjectPersonInfo personSubjectToSubmit) {
+                        <li>Information for Person Subject <strong>@personSubjectToSubmit.FullName</strong></li>
+                    }
+                }
+
+                @foreach (var reportToSubmit in Model.Incident.Reports.Where(_ => _.IsUserAllowedToSubmitAsOfficer(Model.UserInformation))) {
+                    if (reportToSubmit.Subject is SubjectAnimalInfo animalSubjectToSubmit) {
+                        <li>
+                            Report for Animal Subject <strong>@animalSubjectToSubmit.Species.GetDescription()</strong>
+                            by Officer <strong>@reportToSubmit.OfficerFirstName @reportToSubmit.OfficerLastName</strong>
+                            (@reportToSubmit.OfficerBadgeNumber)
+                        </li>
+                    } else if (reportToSubmit.Subject is SubjectPersonInfo personSubjectToSubmit) {
+                        <li>
+                            Report for Person Subject <strong>@personSubjectToSubmit.FullName</strong>
+                            by Officer <strong>@reportToSubmit.OfficerFirstName @reportToSubmit.OfficerLastName</strong>
+                            (@reportToSubmit.OfficerBadgeNumber)
+                        </li>
+                    }
+                }
+
+            </ul>
+
+
+        </alert>
+
+    }
+
+    @if (Model.CanUserApproveOrRejectIncidentOrAnyChildrenAsSupervisorOrTraining) {
+
+        <alert context="Success">
+            There are items for this report that are waiting for you to approve or reject.
+
+            <button bs-button
+                    asp-page-handler="SubmitChangesAsApprover"
+                    bs-context="@ButtonContext.Warning"
+                    bs-size="@Size.Default"
+                    role="button"
+                    type="submit"
+                    class="pull-right">
+                Submit Approvals and Rejections
+            </button>
+
+            <h5>Items to Approve/Reject:</h5>
+
+            <ul>
+
+                @if (Model.Incident.IsUserAllowedToApproveOrRejectAsSupervisorOrTraining(Model.UserInformation)) {
+                    <li>Case Number and Incident Date and Time</li>
+                }
+
+                @foreach (var officerToSubmit in Model.Incident.IncidentOfficers.Where(_ => _.IsUserAllowedToApproveOrRejectAsSupervisorOrTraining(Model.UserInformation))) {
+                    <li>Injury Information for Officer <strong>@officerToSubmit.OfficerFirstName @officerToSubmit.OfficerLastName</strong> (@officerToSubmit.OfficerBadgeNumber)</li>
+                }
+
+                @foreach (var subjectToSubmit in Model.Incident.Subjects.Where(_ => _.IsUserAllowedToApproveOrRejectAsSupervisorOrTraining(Model.UserInformation))) {
+                    if (subjectToSubmit is SubjectAnimalInfo animalSubjectToSubmit) {
+                        <li>Information for Animal Subject <strong>@animalSubjectToSubmit.Species.GetDescription()</strong></li>
+                    } else if (subjectToSubmit is SubjectPersonInfo personSubjectToSubmit) {
+                        <li>Information for Person Subject <strong>@personSubjectToSubmit.FullName</strong></li>
+                    }
+                }
+
+                @foreach (var reportToSubmit in Model.Incident.Reports.Where(_ => _.IsUserAllowedToApproveOrRejectAsSupervisorOrTraining(Model.UserInformation))) {
+                    if (reportToSubmit.Subject is SubjectAnimalInfo animalSubjectToSubmit) {
+                        <li>
+                            Report for Animal Subject <strong>@animalSubjectToSubmit.Species.GetDescription()</strong>
+                            by Officer <strong>@reportToSubmit.OfficerFirstName @reportToSubmit.OfficerLastName</strong>
+                            (@reportToSubmit.OfficerBadgeNumber)
+                        </li>
+                    } else if (reportToSubmit.Subject is SubjectPersonInfo personSubjectToSubmit) {
+                        <li>
+                            Report for Person Subject <strong>@personSubjectToSubmit.FullName</strong>
+                            by Officer <strong>@reportToSubmit.OfficerFirstName @reportToSubmit.OfficerLastName</strong>
+                            (@reportToSubmit.OfficerBadgeNumber)
+                        </li>
+                    }
+                }
+
+            </ul>
+
+
+        </alert>
+
+    }
+
+    <bs-row>
+
+        <bs-col xs="12">
+
+            <lte-box>
+
+                <lte-box-header>
+                    <lte-box-title>
+                        @Html.Raw(Model.Incident.ToApprovalStatusDisplayLabel())
+                        Incident Information
+                    </lte-box-title>
+                    @if (Model.CanUserDeleteIncident) {
+                        <lte-box-tools>
+                            <a bs-button
+                               asp-page="@PageConstants.Delete"
+                               asp-route-incidentId="@Model.Incident.Id"
+                               bs-context="@ButtonContext.Danger"
+                               bs-size="@Size.Small"
+                               role="button">
+                                Delete
+                            </a>
+
+                        </lte-box-tools>
+                    }
+                    
+                    <br />@Html.Raw(Model.Incident.ToApprovalStatusInformationLine())
+                </lte-box-header>
+
+                <lte-box-body>
+
+                    <bs-row>
+
+                        <bs-col xs="6">
+                            <dl class="dl-horizontal">
+
+                                <dt>Case Number</dt>
+                                <dd>
+                                    @Model.Incident.IncidentCaseNumber
+                                    
+                                    @if (Model.CanUserUpdateIncident) {
+
+                                        <a bs-button
+                                           asp-page="@PageConstants.Modals.Incident.UpdateIncidentNumber"
+                                           asp-route-incidentId="@Model.Incident.Id"
+                                           bs-context="@ButtonContext.Warning"
+                                           bs-size="@Size.ExtraSmall"
+                                           role="button"
+                                           bs-remote>
+                                            Change
+                                        </a>
+
+                                    }
+
+                                </dd>
+                            </dl>
+                        </bs-col>
+
+                        <bs-col xs="6">
+                            <dl class="dl-horizontal">
+
+                                <dt>Date &amp; Time</dt>
+                                <dd>
+                                    @LocalDateTimePattern.CreateWithCurrentCulture("g").Format(Model.Incident.IncidentDateAndTime)
+
+                                    @if (Model.CanUserUpdateIncident) {
+
+                                        <a bs-button
+                                           asp-page="@PageConstants.Modals.Incident.UpdateIncidentDateAndTime"
+                                           asp-route-incidentId="@Model.Incident.Id"
+                                           bs-context="@ButtonContext.Warning"
+                                           bs-size="@Size.ExtraSmall"
+                                           role="button"
+                                           bs-remote>
+                                            Change
+                                        </a>
+
+                                    }
+                                </dd>
+
+                            </dl>
+                        </bs-col>
+
+                    </bs-row>
+
+                </lte-box-body>
+
+                @if (Model.Incident.IsUserAllowedToApproveOrRejectAsSupervisorOrTraining(Model.UserInformation)) {
+
+                    <lte-box-footer>
+
+                        <div class="form-inline">
+
+                            <bs-form-group>
+                                <label>Approve or Reject Case Number and Incident Data and Time</label>
+                                <select name="ApproveOrReject_Incident_Choice"
+                                        id="ApproveOrReject_Incident_Choice"
+                                        asp-items="@Model.Incident.ToSelectListItems(Model.UserInformation)"
+                                        data-none-toggle="#ApproveOrReject_Incident_Remarks"></select>
+                            </bs-form-group>
+
+                            <bs-form-group style="width: 100%;">
+                                <label>Remarks</label>
+                                <textarea maxlength="1000"
+                                          name="ApproveOrReject_Incident_Remarks"
+                                          id="ApproveOrReject_Incident_Remarks"
+                                          style="width: 100%; height: inherit;"></textarea>
+                            </bs-form-group>
+
+                        </div>
+
+                    </lte-box-footer>
+
+                }
+
+            </lte-box>
+
+        </bs-col>
+
+        <bs-col xs="12">
+
+            <partial name="@PartialConstants.Officers"
+                     model="new OfficersPartialViewModel(Model.Incident.IncidentOfficers, Model.Incident.Id, Model.Officer.Id)"
+                     view-data="ViewData" />
+
+        </bs-col>
+
+        @if (Model.Incident.Subjects.Any()) {
+
+            foreach (var subject in Model.Incident.Subjects) {
+
+                var otherOfficersReports = Model.Incident.Reports
+                    .Where(_ => _.SubjectId.Equals(subject.SubjectId) &&
+                                !_.OfficerId.Equals(Model.Officer.Id));
+                var officersReport = Model.Incident.Reports
+                    .FirstOrDefault(_ => _.SubjectId.Equals(subject.SubjectId) &&
+                                         _.OfficerId.Equals(Model.Officer.Id));
+
+                <bs-col xs="12">
+
+                    <lte-box>
+
+                        <lte-box-header>
+
+                            @if (subject is SubjectAnimalInfo animalSubject) {
+                                <lte-box-title>
+                                    @Html.Raw(subject.ToApprovalStatusDisplayLabel())
+                                    <strong>Animal: </strong><span class="label label-default">@animalSubject.Species.GetDescription()</span>
+                                </lte-box-title>
+                            } else if (subject is SubjectPersonInfo personSubject) {
+                                <lte-box-title>
+                                    @Html.Raw(subject.ToApprovalStatusDisplayLabel())
+                                    <strong>Person: </strong>
+                                    <span class="label label-default">@personSubject.Race.GetDescription() @personSubject.Gender.GetDescription()</span>
+                                    <strong>@personSubject.FullName</strong> (Age: <strong>@(personSubject.Age?.ToString() ?? "Unknown")</strong>
+                                    @if (personSubject.DateOfBirth.HasValue) {
+                                        @:, DoB: <strong>@personSubject.DateOfBirth.Value.ToString("d", CultureInfo.CurrentCulture)</strong>
+                                    }
+                                    @if (!personSubject.SuspectedUse.Equals(SuspectedUse.None)) {
+                                        @:, Suspected Use: <strong>@personSubject.SuspectedUse.GetDescription()</strong>
+                                    }
+                                    )
+                                </lte-box-title>
+                            }
+
+                            <lte-box-tools>
+
+                                @if (subject.IsUserAllowedToMakeChanges(Model.UserInformation)) {
+
+                                    <a bs-button
+                                       asp-page="@(subject is SubjectAnimalInfo ? PageConstants.Modals.Subject.UpdateAnimalSubject : PageConstants.Modals.Subject.UpdatePersonSubject)"
+                                       asp-route-incidentId="@Model.Incident.Id"
+                                       asp-route-subjectId="@subject.SubjectId"
+                                       bs-context="@ButtonContext.Warning"
+                                       bs-size="@Size.Small"
+                                       role="button"
+                                       bs-remote>
+                                        Edit Subject Information
+                                    </a>
+
+                                }
+
+
+
+                            </lte-box-tools>
+
+                            <br />@Html.Raw(subject.ToApprovalStatusInformationLine())
+
+                        </lte-box-header>
+
+
+
+                        @if (otherOfficersReports.Any(_ => !_.CanUserViewReport(Model.UserInformation))) {
+                            <lte-box-body>
+                                <p>
+                                    @(otherOfficersReports.Count(_ => !_.CanUserViewReport(Model.UserInformation)) == 1 ? "Officer" : "Officers")
+                                    @foreach (var otherOfficersReport in otherOfficersReports.Where(_ => !_.CanUserViewReport(Model.UserInformation))) {
+                                        <span class="label label-default">@otherOfficersReport.OfficerLastName, @otherOfficersReport.OfficerFirstName (@otherOfficersReport.OfficerBadgeNumber)</span>
+                                    }
+                                    also filed @(otherOfficersReports.Count(_ => !_.CanUserViewReport(Model.UserInformation)) == 1 ? "a report" : "reports") for this subject.
+                                </p>
+                            </lte-box-body>
+                        }
+
+                        @if (subject is SubjectPersonInfo personSubjectInfo && personSubjectInfo.WasSubjectInjured.Equals(YesNo.Yes)) {
+
+                            <lte-box-body>
+                                <p>
+                                    <strong>Subject Injury Information: </strong>
+                                    <span class="label label-warning" style="margin-right: 5px;">Was Injured</span>
+
+                                    @if (personSubjectInfo.DidSubjectRequireMedicalAttention.Equals(YesNo.Yes)) {
+                                        <span class="label label-danger">Required Medical Attention</span>
+
+
+                                    }
+
+                                    <em>@personSubjectInfo.DidSubjectRequireMedicalAttentionDescription</em>
+                                </p>
+                            </lte-box-body>
+
+                        }
+
+                        @if (subject.IsUserAllowedToApproveOrRejectAsSupervisorOrTraining(Model.UserInformation)) {
+
+                            <lte-box-body>
+
+                                <div class="form-inline">
+
+                                    <bs-form-group>
+                                        <label>Approve or Reject the Subject Submission</label>
+                                        <select name="ApproveOrReject_Subject_@subject.SubjectId.ToString()_Choice"
+                                                id="ApproveOrReject_Subject_@subject.SubjectId.ToString()_Choice"
+                                                asp-items="@subject.ToSelectListItems(Model.UserInformation)"
+                                                data-none-toggle="#ApproveOrReject_Subject_@subject.SubjectId.ToString()_Remarks"></select>
+                                    </bs-form-group>
+
+                                    <bs-form-group style="width: 100%;">
+                                        <label>Remarks</label>
+                                        <textarea maxlength="1000"
+                                                  name="ApproveOrReject_Subject_@subject.SubjectId.ToString()_Remarks"
+                                                  id="ApproveOrReject_Subject_@subject.SubjectId.ToString()_Remarks"
+                                                  style="width: 100%; height: inherit;"></textarea>
+                                    </bs-form-group>
+
+                                </div>
+
+                            </lte-box-body>
+
+                        }
+
+                        @if (officersReport == null && Model.Incident.IncidentOfficers.Any(_ => _.OfficerId.Equals(Model.Officer.Id)) && Model.UserInformation.EffectivePermissions.Contains(ResistanceResponsePermissions.AllowedToSubmit)) {
+
+                            <lte-box-body>
+                                <h5 class="text-muted"
+                                    style="text-align: center; padding-top: 15px;">
+                                    You have not attached a report to this subject yet.
+
+                                    <br />
+
+                                    <a bs-button
+                                       asp-page="@PageConstants.AttachReport"
+                                       asp-route-incidentId="@Model.Incident.Id"
+                                       asp-route-officerId="@Model.Officer.Id"
+                                       asp-route-subjectId="@subject.SubjectId"
+                                       bs-context="@ButtonContext.Success"
+                                       role="button"
+                                       style="margin-top: 10px;">
+                                        Attach a Report to this Subject
+                                    </a>
+
+                                    @if (!otherOfficersReports.Any() && subject.IsUserAllowedToMakeChanges(Model.UserInformation)) {
+                                        <a bs-button
+                                           asp-page="@PageConstants.Modals.Subject.RemoveSubject"
+                                           asp-route-incidentId="@Model.Incident.Id"
+                                           asp-route-subjectId="@subject.SubjectId"
+                                           bs-context="@ButtonContext.Danger"
+                                           role="button"
+                                           style="margin-top: 10px;"
+                                           bs-remote>
+                                            Remove this Subject
+                                        </a>
+                                    }
+
+                                </h5>
+                            </lte-box-body>
+
+                        }
+
+                        @if (Model.UserInformation.EffectivePermissions.Contains(ResistanceResponsePermissions.AllowedToApproveAsTraining)) {
+
+                            var officersWithoutReportsForThisSubject = Model.Incident.IncidentOfficers.Where(_ => !Model.Incident.Reports.Any(x => x.OfficerId.Equals(_.OfficerId) && x.SubjectId.Equals(subject.SubjectId)));
+
+                            @if (officersWithoutReportsForThisSubject.Any()) {
+
+                                <lte-box-body>
+                                    <h5 class="text-muted"
+                                        style="text-align: center;">
+
+
+                                        <div class="btn-group"
+                                             style="margin-top: 10px;">
+                                            <a href="#"
+                                               class="btn btn-success dropdown-toggle"
+                                               data-toggle="dropdown">
+                                                Attach a Report to this Subject <span class="caret"></span>
+                                            </a>
+                                            <ul class="dropdown-menu">
+                                                @foreach (var officer in officersWithoutReportsForThisSubject) {
+                                                    <li>
+                                                        <a asp-page="@PageConstants.AttachReport"
+                                                           asp-route-incidentId="@Model.Incident.Id"
+                                                           asp-route-officerId="@officer.OfficerId"
+                                                           asp-route-subjectId="@subject.SubjectId">
+                                                            @officer.OfficerFirstName @officer.OfficerLastName (@officer.OfficerBadgeNumber)
+                                                        </a>
+                                                    </li>
+                                                }
+                                            </ul>
+                                        </div>
+
+
+
+
+
+                                        @if (!Model.Incident.Reports.Any(_ => _.SubjectId.Equals(subject.SubjectId))) {
+                                            <a bs-button
+                                               asp-page="@PageConstants.Modals.Subject.RemoveSubject"
+                                               asp-route-incidentId="@Model.Incident.Id"
+                                               asp-route-subjectId="@subject.SubjectId"
+                                               bs-context="@ButtonContext.Danger"
+                                               role="button"
+                                               style="margin-top: 10px;"
+                                               bs-remote>
+                                                Remove this Subject
+                                            </a>
+                                        }
+
+                                    </h5>
+                                </lte-box-body>
+
+                            }
+
+                        }
+
+                        @foreach (var report in Model.Incident.Reports.Where(_ => _.SubjectId.Equals(subject.SubjectId) && _.CanUserViewReport(Model.UserInformation))) {
+
+                            <h3 style="margin-right: 10px; margin-left: 10px; margin-bottom: 0; padding-bottom: 0;">
+
+                                <span class="pull-right">
+                                    @if (report.IsUserAllowedToMakeChanges(Model.UserInformation)) {
+
+                                        <a bs-button
+                                           asp-page="@PageConstants.AttachReport"
+                                           asp-route-incidentId="@Model.Incident.Id"
+                                           asp-route-officerId="@report.OfficerId"
+                                           asp-route-subjectId="@report.SubjectId"
+                                           bs-context="@ButtonContext.Warning"
+                                           bs-size="@Size.Small"
+                                           role="button">
+                                            Edit Report for this Subject
+                                        </a>
+
+                                        <a bs-button
+                                           asp-page="@PageConstants.Modals.Reports.RemoveReport"
+                                           asp-route-incidentId="@Model.Incident.Id"
+                                           asp-route-officerId="@report.OfficerId"
+                                           asp-route-subjectId="@report.SubjectId"
+                                           bs-context="@ButtonContext.Danger"
+                                           bs-size="@Size.Small"
+                                           role="button"
+                                           bs-remote>
+                                            Remove Report for this Subject
+                                        </a>
+                                    }
+                                </span>
+
+                                @Html.Raw(report.ToApprovalStatusDisplayLabel())
+
+                                Report for Officer <strong>@report.OfficerFirstName @report.OfficerLastName</strong> (@report.OfficerBadgeNumber):
+
+                            </h3>
+
+                            <div style="margin-right: 10px; margin-left: 10px; margin-top: 2px; padding-top: 0;">
+                                @Html.Raw(report.ToApprovalStatusInformationLine())
+                            </div>
+
+                            if (report.Resistances.Any()) {
+
+
+                                ViewData["IncidentId"] = Model.Incident.Id;
+                                ViewData["OfficerId"] = report.OfficerId;
+                                ViewData["SubjectId"] = report.SubjectId;
+
+
+                                <partial name="@PartialConstants.Resistances"
+                                         model="@report.Resistances"
+                                         view-data="@ViewData" />
+
+                            }
+
+                            if (report.Responses.Any()) {
+
+                                ViewData["IncidentId"] = Model.Incident.Id;
+                                ViewData["OfficerId"] = report.OfficerId;
+                                ViewData["SubjectId"] = report.SubjectId;
+
+                                <partial name="@PartialConstants.Responses"
+                                         model="@report.Responses"
+                                         view-data="@ViewData" />
+
+                            }
+
+                            @if (report.IsUserAllowedToApproveOrRejectAsSupervisorOrTraining(Model.UserInformation)) {
+
+
+                                <div class="form-inline" style="margin-right: 10px; margin-left: 10px; margin-bottom: 10px; padding-bottom: 10px;">
+
+                                    <bs-form-group>
+                                        <label>Approve or Reject the Report Submission</label>
+                                        <select name="ApproveOrReject_Report_@report.SubjectId.ToString()_@report.OfficerId.ToString()_Choice"
+                                                id="ApproveOrReject_Report_@report.SubjectId.ToString()_@report.OfficerId.ToString()_Choice"
+                                                asp-items="@report.ToSelectListItems(Model.UserInformation)"
+                                                data-none-toggle="#ApproveOrReject_Report_@report.SubjectId.ToString()_@report.OfficerId.ToString()_Remarks"></select>
+                                    </bs-form-group>
+
+                                    <bs-form-group style="width: 100%;">
+                                        <label>Remarks</label>
+                                        <textarea maxlength="1000"
+                                                  name="ApproveOrReject_Report_@report.SubjectId.ToString()_@report.OfficerId.ToString()_Remarks"
+                                                  id="ApproveOrReject_Repor_@report.SubjectId.ToString()_@report.OfficerId.ToString()_Remarks"
+                                                  style="width: 100%; height: inherit;"></textarea>
+                                    </bs-form-group>
+
+                                </div>
+
+
+                            }
+
+                        }
+
+                    </lte-box>
+
+                </bs-col>
+
+            }
+
+            <bs-col xs="12">
+
+                <h2 class="text-warning"
+                    style="text-align: center; margin-top: 0;">
+
+                    <a bs-button
+                       asp-page="@PageConstants.Modals.Subject.AttachAnimalSubject"
+                       asp-route-incidentId="@Model.Incident.Id"
+                       bs-context="@ButtonContext.Success"
+                       role="button"
+                       style="margin-top: 10px;"
+                       bs-remote>
+                        Attach an Additional Animal Subject to this Incident
+                    </a>
+
+                    <a bs-button
+                       asp-page="@PageConstants.Modals.Subject.AttachPersonSubject"
+                       asp-route-incidentId="@Model.Incident.Id"
+                       bs-context="@ButtonContext.Success"
+                       role="button"
+                       style="margin-top: 10px;"
+                       bs-remote>
+                        Attach an Additional Person Subject to this Incident
+                    </a>
+
+                </h2>
+
+            </bs-col>
+
+        } else {
+            <bs-col xs="12">
+
+                <h2 class="text-warning"
+                    style="text-align: center; padding-top: 30px;">
+                    No Subjects are currently attached to this report.
+
+                    <br />
+
+                    <a bs-button
+                       asp-page="@PageConstants.Modals.Subject.AttachAnimalSubject"
+                       asp-route-incidentId="@Model.Incident.Id"
+                       bs-context="@ButtonContext.Success"
+                       role="button"
+                       style="margin-top: 10px;"
+                       bs-remote>
+                        Attach an Animal Subject to this Incident
+                    </a>
+
+                    <a bs-button
+                       asp-page="@PageConstants.Modals.Subject.AttachPersonSubject"
+                       asp-route-incidentId="@Model.Incident.Id"
+                       bs-context="@ButtonContext.Success"
+                       role="button"
+                       style="margin-top: 10px;"
+                       bs-remote>
+                        Attach a Person Subject to this Incident
+                    </a>
+
+                </h2>
+
+            </bs-col>
+        }
+
+    </bs-row>
+
+</form>
+
+@section Scripts {
+    <script type="text/javascript">
+        $("[data-none-toggle]").on('change',
+            function (event) {
+
+                updateNoneToggles(this);
+
+            });
+
+        $("[data-none-toggle]").each(function (i) {
+            updateNoneToggles(this);
+        });
+
+        $("input,select,textarea", "#modal-container").attr('autocomplete', 'nope');
+
+        function updateNoneToggles(element) {
+            var selector = $(element).data('none-toggle');
+            var value = $(element).val();
+
+            var myParent = $(element).parents(".form-group");
+
+            var parent = $(selector).parents(".form-group");
+
+            if (value === "-1" || myParent.hasClass("hidden")) {
+
+                $(parent).addClass("hidden");
+                $("input", parent).attr("data-validate", "false");
+                $("textarea", parent).attr("data-validate", "false");
+                $("form", "#modal-container").validator("update").validator("validate");
+            } else {
+                $(parent).removeClass("hidden");
+                $("input", parent).attr("data-validate", "true");
+                $("textarea", parent).attr("data-validate", "true");
+                $("form", "#modal-container").validator("update").validator("validate");
+            }
+
+            $(selector).filter("[data-none-toggle]").each(function () {
+                updateNoneToggles($(this));
+            });
+        }
+    </script>
+}

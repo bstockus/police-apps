@@ -1,0 +1,44 @@
+﻿@page
+@model UpdateIncidentDateAndTimeModel
+
+@{
+    this.UseModalLayout("Update Incident Date and Time");
+
+
+}
+
+<input type="hidden" asp-for="IncidentId" />
+
+<div class="form-group">
+    <label for="incidentDate">Incident Date:</label>
+
+    <input type="text"
+           class="form-control date-control"
+           id="incidentDate"
+           asp-for="IncidentDate"
+           value="@Model.IncidentDate.ToShortDateString()" />
+
+</div>
+
+<div class="form-group">
+    <label for="incidentTime">Incident Time:</label>
+    <div class="input-group bootstrap-timepicker timepicker">
+
+        <input type="text"
+               class="form-control time-control"
+               id="incidentTime"
+               asp-for="IncidentTime" />
+
+        <span class="input-group-addon">
+            <i class="glyphicon glyphicon-time"></i>
+        </span>
+    </div>
+
+</div>
+
+@section Button {
+    <button bs-context="@ButtonContext.Warning"
+            type="submit">
+        Update
+    </button>
+}

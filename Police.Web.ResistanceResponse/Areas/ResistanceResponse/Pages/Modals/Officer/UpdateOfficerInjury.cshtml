@@ -1,0 +1,45 @@
+﻿@page
+@using Police.Business.Common
+@model UpdateOfficerInjuryModel
+@{
+    this.UseModalLayout("Update Officer Injury Information");
+}
+
+<input type="hidden" asp-for="IncidentId" />
+<input type="hidden" asp-for="OfficerId" />
+
+<bs-form-group>
+    <label>Officer</label>
+    <p>@Model.IncidentOfficerInfo.OfficerLastName, @Model.IncidentOfficerInfo.OfficerFirstName (@Model.IncidentOfficerInfo.OfficerBadgeNumber)</p>
+</bs-form-group>
+
+<bs-form-group>
+    <label>Was Officer Injured?</label>
+    <select required
+            asp-for="WasOfficerInjured"
+            asp-items="Html.GetEnumSelectList<YesNo>()"
+            data-yes-toggle="#DidOfficerRequireMedicalAttention,#DidOfficerRequireMedicalAttentionDescription"></select>
+    <help-block></help-block>
+</bs-form-group>
+
+<bs-form-group>
+    <label>Did Officer Require Medical Attention</label>
+    <select required
+            asp-for="DidOfficerRequireMedicalAttention"
+            asp-items="Html.GetEnumSelectList<YesNo>()"></select>
+    <help-block></help-block>
+</bs-form-group>
+
+<bs-form-group>
+    <label>Describe</label>
+    <textarea maxlength="1000"
+              asp-for="DidOfficerRequireMedicalAttentionDescription"></textarea>
+    <help-block></help-block>
+</bs-form-group>
+
+@section Button {
+    <button bs-context="@ButtonContext.Warning"
+            type="submit">
+        Update
+    </button>
+}

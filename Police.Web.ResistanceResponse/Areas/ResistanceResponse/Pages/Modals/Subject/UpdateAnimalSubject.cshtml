@@ -1,0 +1,24 @@
+@page
+@using Police.Business.ResistanceResponse.Incidents.Subjects.Animals
+@model UpdateAnimalSubjectModel
+@{
+    this.UseModalLayout("Update Animal Subject Information");
+}
+
+<input type="hidden" asp-for="IncidentId" />
+<input type="hidden" asp-for="SubjectId" />
+
+<bs-form-group>
+    <label>Animal Species</label>
+    <select required
+            asp-for="Species"
+            asp-items="Html.GetEnumSelectList<Species>()"></select>
+    <help-block></help-block>
+</bs-form-group>
+
+@section Button {
+    <button bs-context="@ButtonContext.Warning"
+            type="submit">
+        Update
+    </button>
+}

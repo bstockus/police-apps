@@ -1,0 +1,52 @@
+﻿Logging:
+  LogLevel:
+    Default: Warning
+Serilog:
+  MinimumLevel: Warning
+  Enrich:
+  - FromLogContext
+  - WithMachineName
+  - WithEnvironmentUserName
+  - WithThreadId
+  - WithProcessId
+  - WithProcessName
+  WriteTo:
+  - Name: MSSqlServer
+    Args:
+      connectionString: <InsertConnectionStringHere>
+      tableName: Log
+      schemaName: Logs
+
+AllowedHosts: "*"
+
+ConnectionStrings:
+  PoliceDb: <InsertConnectionStringHere>
+  ActiveDirectory: <InsertLDAPStringHere>
+
+Email:
+  MailServer: mail2
+  FromAddress: responsetoresistance@cityoflacrosse.org
+  FromDisplayName: Response to Resistance Notifications
+
+Notifications:
+  OfficerSubmitNotification:
+    To: zzpolicesupervisor@cityoflacrosse.org
+    Cc:
+    - klossd@cityoflacrosse.org
+  TaserSubmitNotification:
+  - rindfleischj@cityoflacrosse.org
+  - howed@cityoflacrosse.org
+  SupervisorApprovalNotification:
+  - klossd@cityoflacrosse.org
+
+AzureAd:
+  Instance: https://login.microsoftonline.com/
+  TenantId: b9bc47de-972a-4482-ad22-b9c21b74e467
+  ClientId: <InsertClientIdHere>
+  CallbackPath: /signin-oidc
+  SignedOutCallbackPath: /signout-oidc
+  ClientSecret: <InsertClientSecretHere>
+
+GraphBeta:
+  BaseUrl: https://graph.microsoft.com/beta
+  Scopes: User.Read
